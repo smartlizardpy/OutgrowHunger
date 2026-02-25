@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Outgrow Hunger</title>
+    <style>
+        :root {
+            --primary-color: #4a7c59; /* Earthy Green */
+            --primary-dark: #3a6346;
+            --secondary-color: #8cba80; /* Soft Green */
+            --accent-color: #e6b89c; /* Soft Clay/Skin tone */
+            --danger-color: #d9534f;
+            --warning-color: #f0ad4e;
+            --bg-color: #f4f1ea; /* Off-white/Paper */
+            --text-color: #333;
+            --card-bg: #ffffff;
+            --radius: 16px;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#e0e5e0 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Main Game Container */
+        #game-container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            position: relative;
+            min-height: 850px;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.1s;
+        }
+
+        /* Screen Management */
+        .screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            padding: 25px;
+            animation: fadeIn 0.4s ease-out;
+            position: relative;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Shake Animation for Damage */
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        /* Floating Text */
+        .float-text {
+            position: absolute;
+            font-weight: bold;
+            font-size: 1.1rem;
+            pointer-events: none;
+            animation: floatUp 0.8s ease-out forwards;
+            z-index: 100;
+            text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-40px) scale(1.1); }
+        }
+
+        /* Typography & Common Elements */
+        h1 { font-size: 2.2rem; color: var(--primary-color); margin-bottom: 0.5rem; text-align: center; font-weight: 800; letter-spacing: -0.5px; }
+        h2 { font-size: 1.5rem; margin-bottom: 1rem; color: #444; font-weight: 700; }
+        p { line-height: 1.6; margin-bottom: 1rem; color: #666; }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 16px 20px;
+            border-radius: var(--radius);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            margin-top: 10px;
+            box-shadow: 0 4px 6px rgba(74, 124, 89, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        button:active { transform: scale(0.98); box-shadow: 0 2px 3px rgba(74, 124, 89, 0.2); }
+        button:hover { background-color: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 6px 12px rgba(74, 124, 89, 0.3); }
+        
+        button.secondary {
+            background-color: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            box-shadow: none;
+        }
+        button.secondary:hover { background-color: #f0f7f1; transform: translateY(-1px); }
+        
+        button:disabled { 
+            opacity: 0.6; 
+            cursor: not-allowed; 
+            background-color: #ccc;
+            border-color: #ccc;
+            color: #666;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Trait Specific Button Style */
+        button.trait-choice {
+            background: linear-gradient(135deg, #d4a017 0%, #b8860b 100%);
+            border: none;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 6px rgba(184, 134, 11, 0.3);
+        }
+        button.trait-choice:hover {
+            filter: brightness(1.1);
+            box-shadow: 0 6px 12px rgba(184, 134, 11, 0.4);
+        }
+        .trait-badge {
+            font-size: 0.75rem;
+            background: rgba(255,255,255,0.25);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-right: 8px;
+            vertical-align: middle;
+            font-weight: 800;
+        }
+
+        /* Difficulty Selector */
+        .difficulty-selector {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            justify-content: center;
+        }
+        .diff-btn {
+            flex: 1;
+            padding: 10px;
+            font-size: 0.9rem;
+            background: #eee;
+            color: #666;
+            border: 2px solid transparent;
+            margin-top: 0;
+            box-shadow: none;
+        }
+        .diff-btn.active {
+            background: white;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .diff-desc {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 20px;
+            font-style: italic;
+            min-height: 1.2em;
+        }
+
+        /* Modal (How to Play) */
+        .modal-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            z-index: 100;
+            backdrop-filter: blur(2px);
+        }
+        .modal-overlay.open { display: flex; animation: fadeIn 0.2s; }
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: var(--radius);
+            max-width: 400px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .modal-content h3 { color: var(--primary-color); margin-top: 15px; margin-bottom: 5px; }
+        .close-modal {
+            float: right;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+            width: auto;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Start Screen */
+        #start-screen { justify-content: center; align-items: center; text-align: center; }
+        .hero-icon { font-size: 5rem; margin-bottom: 10px; display: block; animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+
+        /* Character Selection */
+        #character-selection { overflow-y: auto; }
+        .character-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 20px; }
+        .character-card {
+            border: 2px solid #eee;
+            border-radius: var(--radius);
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: flex-start;
+            background: white;
+        }
+        .character-card:hover { border-color: var(--primary-color); background-color: #f9fdfa; transform: translateY(-3px); box-shadow: 0 8px 16px rgba(0,0,0,0.06); }
+        .character-card.selected { border-color: var(--primary-color); background-color: #eef5ef; box-shadow: 0 0 0 2px var(--primary-color) inset; }
+        .char-avatar-large { font-size: 3rem; margin-right: 15px; min-width: 60px; text-align: center; }
+        .char-info h3 { color: var(--primary-color); margin-bottom: 5px; }
+        .char-info p { font-size: 0.9rem; margin-bottom: 5px; color: #555; }
+        .char-stats { font-size: 0.8rem; color: #777; font-style: italic; }
+        .trait-tag { display: inline-block; background: var(--accent-color); color: #4a2c1d; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; margin-top: 5px; }
+
+        /* Game Screen */
+        #game-header {
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .day-counter {
+            font-weight: 800;
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+        
+        .day-progress-track {
+            width: 100%;
+            height: 6px;
+            background: #eee;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .day-progress-fill {
+            height: 100%;
+            background: var(--primary-color);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .character-display {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            border: 1px solid #eee;
+            padding: 12px;
+            border-radius: var(--radius);
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .avatar-circle {
+            width: 45px; height: 45px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem; margin-right: 15px;
+        }
+
+        /* Stats System */
+        .stats-container { margin-bottom: 20px; background: #fafafa; padding: 15px; border-radius: var(--radius); border: 1px solid #f0f0f0; }
+        .stat-row { margin-bottom: 12px; }
+        .stat-row:last-child { margin-bottom: 0; }
+        .stat-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .progress-bar-bg {
+            width: 100%;
+            height: 12px;
+            background-color: #e0e0e0;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .progress-bar-fill {
+            height: 100%;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s;
+            border-radius: 6px;
+            background-image: linear-gradient(rgba(255,255,255,0.15), rgba(0,0,0,0.05));
+        }
+
+        /* Action Bar */
+        .action-bar {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        .action-btn {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            color: #555;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 600;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.05);
+            margin-top: 0;
+        }
+        .action-btn:hover:not(:disabled) {
+            background-color: #fff;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .action-btn:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+        .game-log {
+            font-size: 0.85rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-weight: 600;
+            height: 20px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .game-log.show { opacity: 1; }
+
+        /* Resource Grid */
+        .resource-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .resource-item {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 12px 5px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            transition: transform 0.2s;
+        }
+        .resource-item:hover { transform: translateY(-2px); }
+        .resource-icon { font-size: 1.4rem; display: block; margin-bottom: 4px; }
+        .resource-val { font-weight: 800; color: var(--text-color); font-size: 1.1rem; }
+        .resource-name { font-size: 0.65rem; color: #999; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin-top: 2px;}
+
+        /* Event Area */
+        .event-card {
+            background: white;
+            border: 1px solid #eee;
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: 0 10px 20px -5px rgba(0,0,0,0.05);
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.4s ease-out;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .event-content { flex-grow: 1; }
+        .event-actions {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .choice-effect-preview {
+            display: block;
+            margin-top: 6px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            opacity: 0.8;
+        }
+        .trait-choice .choice-effect-preview {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        /* End Screen */
+        #end-screen { justify-content: center; text-align: center; }
+        .result-badge { font-size: 5rem; margin-bottom: 1rem; display: block; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+        
+        .win-title { color: var(--primary-color); }
+        .lose-title { color: var(--danger-color); }
+        
+        .end-stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 15px;
+            text-align: left;
+        }
+        .end-stat-item { padding: 8px; border-bottom: 1px solid #eee; font-size: 0.95rem; color: #555; }
+        .end-val { float: right; font-weight: bold; color: #333; }
+
+        @media (max-width: 480px) {
+            body { padding: 0; background-color: var(--card-bg); }
+            #game-container { border-radius: 0; min-height: 100vh; box-shadow: none; max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    
+    <!-- START SCREEN -->
+    <div id="start-screen" class="screen active">
+        <div class="hero-icon">🌱</div>
+        <h1>Outgrow Hunger</h1>
+        <p>Manage resources, build trust, and survive the season.</p>
+        
+        <div class="difficulty-selector">
+            <button class="diff-btn" onclick="setDifficulty('easy')">Easy</button>
+            <button class="diff-btn active" onclick="setDifficulty('normal')">Normal</button>
+            <button class="diff-btn" onclick="setDifficulty('hard')">Hard</button>
+        </div>
+        <div class="diff-desc" id="diff-desc">Standard resources. Standard challenge.</div>
+
+        <div style="background: #eef5ef; padding: 15px; border-radius: 8px; font-size: 0.9rem; margin-bottom: 20px; text-align: left; border: 1px solid #dcece0;">
+            <strong>Objective:</strong> Survive 30 Days.<br>
+            <div style="font-size: 0.85rem; margin-top:5px; color:#555;">
+                On Day 30, you must have:<br>
+                Hunger < 10% &nbsp;|&nbsp; Resilience > 80%
+            </div>
+        </div>
+
+        <div style="width: 100%;">
+            <button id="btn-start">Start New Game</button>
+            <button class="secondary" style="margin-top: 15px;" onclick="toggleModal(true)">How to Play</button>
+        </div>
+    </div>
+
+    <!-- HOW TO PLAY MODAL -->
+    <div class="modal-overlay" id="help-modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="toggleModal(false)">&times;</button>
+            <h2>How to Play</h2>
+            
+            <h3>1. The Daily Loop</h3>
+            <p>Each day brings a random <strong>Event</strong>. Choose wisely! Your choices affect your stats and resources.</p>
+            
+            <h3>2. Manage Needs</h3>
+            <p>After the event, use your <strong>Action Bar</strong> to eat (Bread) or drink (Water) if your stats are critical.</p>
+            
+            <h3>3. End the Day</h3>
+            <p>Click "End Day" to sleep. <br><strong>Warning:</strong> Hunger rises (+10) and Trust falls (-5) every night.</p>
+            
+            <h3>4. Win Conditions</h3>
+            <p>On <strong>Day 30</strong>, you must have:<br>
+            - <strong>Hunger below 10%</strong><br>
+            - <strong>Resilience above 80%</strong></p>
+            
+            <h3>5. Losing</h3>
+            <p>You lose immediately if Hunger hits 100%, Resilience hits 0%, or Trust hits 0%.</p>
+            
+            <button onclick="toggleModal(false)" style="margin-top: 20px;">Got it!</button>
+        </div>
+    </div>
+
+    <!-- CHARACTER SELECTION SCREEN -->
+    <div id="character-selection" class="screen">
+        <h2>Choose Your Character</h2>
+        <p>Your background determines your starting resources and special abilities.</p>
+        <div class="character-grid" id="character-list"></div>
+        <button id="btn-confirm-char" disabled>Select Character</button>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="game-screen" class="screen">
+        <div id="game-header">
+            <div class="header-top">
+                <span id="header-profile-name">Profile</span>
+                <span class="day-counter" id="day-display">Day 1 / 30</span>
+            </div>
+            <div class="day-progress-track">
+                <div class="day-progress-fill" id="day-progress-bar"></div>
+            </div>
+        </div>
+
+        <!-- Character Display -->
+        <div class="character-display">
+            <div class="avatar-circle" id="game-avatar">?</div>
+            <div>
+                <strong id="game-char-name">Character Name</strong><br>
+                <small id="game-char-trait" style="color: var(--primary-color);">Trait</small>
+            </div>
+        </div>
+
+        <!-- STATS SYSTEM UI -->
+        <div class="stats-container">
+            <div class="stat-row">
+                <div class="stat-label"><span>Hunger (Goal: < 10%)</span><span id="val-hunger">0%</span></div>
+                <div class="progress-bar-bg"><div id="bar-hunger" class="progress-bar-fill" style="width: 0%; background-color: var(--secondary-color);"></div></div>
+            </div>
+            <div class="stat-row">
+                <div class="stat-label"><span>Resilience (Goal: > 80%)</span><span id="val-resilience">100%</span></div>
+                <div class="progress-bar-bg"><div id="bar-resilience" class="progress-bar-fill" style="width: 100%; background-color: var(--primary-color);"></div></div>
+            </div>
+            <div class="stat-row">
+                <div class="stat-label"><span>Community Trust</span><span id="val-trust">50%</span></div>
+                <div class="progress-bar-bg"><div id="bar-trust" class="progress-bar-fill" style="width: 50%; background-color: var(--primary-color);"></div></div>
+            </div>
+        </div>
+        
+        <!-- ACTION BAR -->
+        <div class="action-bar" id="action-bar-container">
+            <button class="action-btn" id="btn-action-eat" onclick="playerEat(this)">
+                🍞 Eat (-1)
+            </button>
+            <button class="action-btn" id="btn-action-drink" onclick="playerDrink(this)">
+                💧 Drink (-1)
+            </button>
+        </div>
+        <div class="game-log" id="game-log"></div>
+
+        <!-- Resources Grid -->
+        <div class="resource-grid">
+            <div class="resource-item"><span class="resource-icon">🍞</span><div class="resource-val" id="res-food">0</div><div class="resource-name">Food</div></div>
+            <div class="resource-item"><span class="resource-icon">💧</span><div class="resource-val" id="res-water">0</div><div class="resource-name">Water</div></div>
+            <div class="resource-item"><span class="resource-icon">💰</span><div class="resource-val" id="res-money">0</div><div class="resource-name">Money</div></div>
+            <div class="resource-item"><span class="resource-icon">📚</span><div class="resource-val" id="res-know">0</div><div class="resource-name">Know.</div></div>
+        </div>
+
+        <!-- EVENT AREA -->
+        <div class="event-card" id="event-card-container">
+            <div class="event-content">
+                <h2 id="event-title">Event Title</h2>
+                <p id="event-text">Event description goes here.</p>
+                <p id="event-result" style="color: var(--primary-color); font-weight: bold; display: none; margin-top: 15px; padding: 10px; background: #f4f9f4; border-radius: 6px; border-left: 4px solid var(--primary-color);"></p>
+                <p id="daily-summary" style="color: #666; font-size: 0.9rem; margin-top: 10px; display: none; border-top: 1px solid #eee; padding-top: 10px;"></p>
+            </div>
+            <div class="event-actions" id="event-choices">
+                <!-- Dynamic Buttons Injected Here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- END SCREEN -->
+    <div id="end-screen" class="screen">
+        <div class="result-badge" id="end-icon">🏁</div>
+        <h1 id="end-title">Game Over</h1>
+        <p id="end-message">You survived for 0 days.</p>
+        
+        <div class="stats-placeholder" style="background: white; border: 1px solid #eee; padding: 20px; border-radius: var(--radius);">
+            <h3 style="margin-bottom: 10px; color: #444;">Final Statistics</h3>
+            <div class="end-stat-grid">
+                <div class="end-stat-item">Days Survived <span class="end-val" id="end-stat-days">0</span></div>
+                <div class="end-stat-item">Final Trust <span class="end-val" id="end-stat-trust">0%</span></div>
+                <div class="end-stat-item">Resources Left <span class="end-val" id="end-stat-res">0</span></div>
+                <div class="end-stat-item">Knowledge <span class="end-val" id="end-stat-know">0</span></div>
+            </div>
+        </div>
+        
+        <button id="btn-restart">Play Again</button>
+        <button id="btn-menu" class="secondary">Main Menu</button>
+    </div>
+
+</div>
+
+<script>
+    // --- AUDIO SYSTEM ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playSound(type) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+        
+        if (type === 'click') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(400, now);
+            osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.linearRampToValueAtTime(0, now + 0.1);
+            osc.start(now);
+            osc.stop(now + 0.1);
+        } else if (type === 'success') {
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(300, now);
+            osc.frequency.exponentialRampToValueAtTime(500, now + 0.1);
+            osc.frequency.exponentialRampToValueAtTime(800, now + 0.2);
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.linearRampToValueAtTime(0, now + 0.3);
+            osc.start(now);
+            osc.stop(now + 0.3);
+        } else if (type === 'error') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, now);
+            osc.frequency.linearRampToValueAtTime(100, now + 0.2);
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.linearRampToValueAtTime(0, now + 0.2);
+            osc.start(now);
+            osc.stop(now + 0.2);
+        } else if (type === 'win') {
+            // Major chord arpeggio
+            [440, 554, 659, 880].forEach((freq, i) => {
+                const o = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                o.connect(g);
+                g.connect(audioCtx.destination);
+                o.frequency.value = freq;
+                g.gain.setValueAtTime(0, now + i*0.1);
+                g.gain.linearRampToValueAtTime(0.1, now + i*0.1 + 0.05);
+                g.gain.exponentialRampToValueAtTime(0.001, now + i*0.1 + 0.5);
+                o.start(now + i*0.1);
+                o.stop(now + i*0.1 + 0.5);
+            });
+        }
+    }
+
+    // --- GAME DATA ---
+    const eventsData = [
+        { id: 1, title: "Community Garden", text: "The neighborhood is starting a shared garden. They need volunteers.", choices: [{ text: "Volunteer time", effect: { hunger: 10, trust: 15, resilience: -10 }, msg: "You worked hard. The community appreciates it." }, { text: "Donate $5", effect: { money: -5, trust: 10, knowledge: 5 }, msg: "Your donation helped buy premium seeds." }, { text: "Lead the Project", reqTrait: "Community Leader", effect: { trust: 25, resilience: -5 }, msg: "Your leadership inspired everyone!" }] },
+        { id: 2, title: "Market Day Deal", text: "A local farmer is selling surplus vegetables at a huge discount.", choices: [{ text: "Buy cheap ($5)", effect: { money: -5, food: 15, hunger: -5 }, msg: "A great haul! You ate well tonight." }, { text: "Buy fresh ($10)", effect: { money: -10, food: 10, resilience: 5 }, msg: "Expensive, but healthy and safe." }, { text: "Haggle", reqTrait: "Negotiator", effect: { money: -5, food: 20 }, msg: "You talked them into a great deal." }] },
+        { id: 3, title: "Drought Warning", text: "The weather forecast predicts a heatwave. Water prices are rising.", choices: [{ text: "Stockpile Water ($5)", effect: { money: -5, water: 15, trust: -5 }, msg: "You have water, but neighbors think you're hoarding." }, { text: "Share supply", effect: { water: -5, trust: 20 }, msg: "You helped a neighbor. They won't forget it." }, { text: "Efficient Irrigation", reqTrait: "Green Thumb", effect: { water: 5, food: 5 }, msg: "You saved water with smart farming." }] },
+        { id: 4, title: "School Fundraiser", text: "The local school needs books.", choices: [{ text: "Donate ($10)", effect: { money: -10, knowledge: 15, trust: 5 }, msg: "You learned a lot from the library." }, { text: "Volunteer", effect: { resilience: -15, knowledge: 10, trust: 10 }, msg: "Teaching is tiring but rewarding." }, { text: "Organize Event", reqTrait: "Community Leader", effect: { trust: 20, knowledge: 10 }, msg: "You raised huge funds." }] },
+        { id: 5, title: "Broken Fence", text: "A storm damaged your backyard fence.", choices: [{ text: "Fix it yourself", effect: { resilience: -20, hunger: 10, money: 0 }, msg: "Exhausting work, but free." }, { text: "Hire handyman ($15)", effect: { money: -15, resilience: 5 }, msg: "Costly, but saved your energy." }, { text: "Leave it", effect: { trust: -10, money: -5 }, msg: "Stray animals ate some food." }] },
+        { id: 6, title: "Neighbor in Need", text: "An elderly neighbor is ill.", choices: [{ text: "Cook meal", effect: { food: -5, water: -2, trust: 20 }, msg: "Your kindness is known." }, { text: "Visit", effect: { resilience: -5, trust: 10 }, msg: "They appreciated the company." }, { text: "Treat Them", reqTrait: "Healer", effect: { trust: 25, knowledge: 5 }, msg: "You helped them recover." }] },
+        { id: 7, title: "Pest Infestation", text: "Beetles are eating the crops!", choices: [{ text: "Buy Pesticide ($10)", effect: { money: -10, food: 5 }, msg: "Chemicals worked." }, { text: "Handpick them", effect: { resilience: -15, food: 5, hunger: 5 }, msg: "Backbreaking work." }, { text: "Natural Remedy", reqTrait: "Green Thumb", effect: { food: 15, trust: 5 }, msg: "You used herbs to repel them." }] },
+        { id: 8, title: "Flu Season", text: "A bad flu is going around.", choices: [{ text: "Buy Medicine ($15)", effect: { money: -15, resilience: 20 }, msg: "You feel strong." }, { text: "Rest at home", effect: { hunger: 5, resilience: 10, money: 0 }, msg: "You saved energy." }, { text: "Preventative Care", reqTrait: "Healer", effect: { resilience: 25, trust: 10 }, msg: "You stayed healthy." }] },
+        { id: 9, title: "Traveling Merchant", text: "A merchant is selling rare items.", choices: [{ text: "Buy Seeds ($10)", effect: { money: -10, food: 15 }, msg: "Great harvest potential." }, { text: "Buy Books ($10)", effect: { money: -10, knowledge: 20 }, msg: "Knowledge is power." }, { text: "Bulk Discount", reqTrait: "Negotiator", effect: { money: -10, food: 15, knowledge: 15 }, msg: "A 2-for-1 deal!" }] },
+        { id: 10, title: "Neighborhood Dispute", text: "Two families are fighting.", choices: [{ text: "Stay out", effect: { trust: -5 }, msg: "Morale drops." }, { text: "Pick side", effect: { trust: -10, resilience: -5 }, msg: "You made enemies." }, { text: "Mediate", reqTrait: "Community Leader", effect: { trust: 30 }, msg: "Peace restored." }] },
+        { id: 11, title: "Roof Leak", text: "Heavy rain is leaking in.", choices: [{ text: "Patch it", effect: { resilience: -10, water: 5 }, msg: "You caught rainwater." }, { text: "Ignore it", effect: { food: -10, resilience: -5 }, msg: "Mold grew on food." }, { text: "Barter repair", reqTrait: "Negotiator", effect: { money: -5, resilience: 5 }, msg: "Traded junk for repair." }] },
+        { id: 12, title: "Wild Berries", text: "Found berries in the woods.", choices: [{ text: "Eat them", effect: { food: 10, resilience: -10 }, msg: "They were sour." }, { text: "Leave them", effect: { hunger: 5 }, msg: "Better safe than sorry." }, { text: "Identify", reqTrait: "Green Thumb", effect: { food: 20, resilience: 5 }, msg: "Superfood!" }] }
+    ];
+
+    // --- CHARACTER DATA ---
+    const characters = [
+        { id: 'maya', name: "Maya the Teacher", bio: "A beloved educator.", avatar: "👩‍🏫", trait: "Community Leader", traitDesc: "Trust decreases 50% slower.", startingMods: { knowledge: 20, trust: 25, food: 5 } },
+        { id: 'liam', name: "Liam the Farmer", bio: "Expert in agriculture.", avatar: "👨‍🌾", trait: "Green Thumb", traitDesc: "Start with extra food supplies.", startingMods: { food: 25, resilience: 15, money: 5 } },
+        { id: 'sam', name: "Sam the Merchant", bio: "Resourceful and shrewd.", avatar: "🧑‍💼", trait: "Negotiator", traitDesc: "Start with extra money.", startingMods: { money: 25, food: 10, trust: 0 } },
+        { id: 'elena', name: "Elena the Doctor", bio: "Vital medical skills.", avatar: "👩‍⚕️", trait: "Healer", traitDesc: "Higher resilience and health.", startingMods: { resilience: 30, knowledge: 15, money: 5 } }
+    ];
+
+    // --- GAME SETTINGS ---
+    let difficulty = 'normal';
+    const difficultySettings = {
+        easy: { resourceMod: 10, hungerRate: 8, trustDecay: 3, desc: "More supplies. Slower hunger. Good for new players." },
+        normal: { resourceMod: 0, hungerRate: 10, trustDecay: 5, desc: "Standard resources. Standard challenge." },
+        hard: { resourceMod: -5, hungerRate: 12, trustDecay: 8, desc: "Scarce supplies. Rapid hunger. A true survival test." }
+    };
+    
+    let baseStats = { hunger: 20, resilience: 50, trust: 30, food: 10, water: 10, money: 10, knowledge: 5 };
+
+    // --- GAME STATE ---
+    let gameState = {
+        selectedCharacter: null,
+        stats: {},
+        day: 1,
+        active: false,
+        lastEventId: null
+    };
+
+    // --- UI CONTROLLER ---
+    const screens = {
+        start: document.getElementById('start-screen'),
+        charSelect: document.getElementById('character-selection'),
+        game: document.getElementById('game-screen'),
+        end: document.getElementById('end-screen')
+    };
+
+    const buttons = {
+        start: document.getElementById('btn-start'),
+        confirmChar: document.getElementById('btn-confirm-char'),
+        restart: document.getElementById('btn-restart'),
+        menu: document.getElementById('btn-menu')
+    };
+
+    const uiStats = {
+        hungerVal: document.getElementById('val-hunger'),
+        hungerBar: document.getElementById('bar-hunger'),
+        resilienceVal: document.getElementById('val-resilience'),
+        resilienceBar: document.getElementById('bar-resilience'),
+        trustVal: document.getElementById('val-trust'),
+        trustBar: document.getElementById('bar-trust'),
+        food: document.getElementById('res-food'),
+        water: document.getElementById('res-water'),
+        money: document.getElementById('res-money'),
+        know: document.getElementById('res-know'),
+        day: document.getElementById('day-display'),
+        log: document.getElementById('game-log'),
+        dayProgress: document.getElementById('day-progress-bar')
+    };
+
+    const effectMeta = {
+        hunger: { label: 'Hunger', unit: '%' },
+        resilience: { label: 'Resilience', unit: '%' },
+        trust: { label: 'Trust', unit: '%' },
+        food: { label: 'Food', unit: '' },
+        water: { label: 'Water', unit: '' },
+        money: { label: 'Money', unit: '' },
+        knowledge: { label: 'Knowledge', unit: '' }
+    };
+
+    // --- UTILITIES ---
+    function showScreen(screenName) {
+        Object.values(screens).forEach(screen => screen.classList.remove('active'));
+        if(screens[screenName]) screens[screenName].classList.add('active');
+    }
+
+    function log(msg) {
+        uiStats.log.innerText = msg;
+        uiStats.log.classList.add('show');
+        setTimeout(() => { uiStats.log.classList.remove('show'); }, 2000);
+    }
+
+    function spawnFloatText(element, text, color) {
+        const rect = element.getBoundingClientRect();
+        const floatEl = document.createElement('div');
+        floatEl.className = 'float-text';
+        floatEl.innerText = text;
+        floatEl.style.color = color;
+        floatEl.style.left = (rect.left + rect.width/2 - 20) + 'px';
+        floatEl.style.top = (rect.top - 20) + 'px';
+        document.body.appendChild(floatEl);
+        setTimeout(() => floatEl.remove(), 1000);
+    }
+
+    function triggerShake() {
+        const container = document.getElementById('game-container');
+        container.classList.remove('shake');
+        void container.offsetWidth; // trigger reflow
+        container.classList.add('shake');
+    }
+
+    function toggleModal(show) {
+        const modal = document.getElementById('help-modal');
+        playSound('click');
+        if(show) {
+            modal.classList.add('open');
+        } else {
+            modal.classList.remove('open');
+        }
+    }
+
+    function setDifficulty(level) {
+        playSound('click');
+        difficulty = level;
+        
+        // Update UI
+        document.querySelectorAll('.diff-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        document.getElementById('diff-desc').innerText = difficultySettings[level].desc;
+    }
+
+    // --- CORE LOGIC ---
+    function initCharacterSelection() {
+        const list = document.getElementById('character-list');
+        list.innerHTML = ''; 
+        characters.forEach(char => {
+            const card = document.createElement('div');
+            card.className = 'character-card';
+            card.onclick = () => selectCharacter(char.id, card);
+            card.innerHTML = `<div class="char-avatar-large">${char.avatar}</div><div class="char-info"><h3>${char.name}</h3><p>${char.bio}</p><span class="trait-tag">${char.trait}</span><div class="char-stats">${char.traitDesc}</div></div>`;
+            list.appendChild(card);
+        });
+    }
+
+    function selectCharacter(charId, cardElement) {
+        playSound('click');
+        gameState.selectedCharacter = characters.find(c => c.id === charId);
+        document.querySelectorAll('.character-card').forEach(c => c.classList.remove('selected'));
+        cardElement.classList.add('selected');
+        buttons.confirmChar.disabled = false;
+        buttons.confirmChar.innerText = `Play as ${gameState.selectedCharacter.name.split(' ')[0]}`;
+    }
+
+    function initializeGameStats() {
+        gameState.stats = { ...baseStats };
+        gameState.day = 1;
+        gameState.active = true;
+        gameState.lastEventId = null;
+        
+        const settings = difficultySettings[difficulty];
+        const mods = gameState.selectedCharacter.startingMods;
+
+        // Apply Difficulty Mod to resources
+        ['food', 'water', 'money', 'knowledge'].forEach(res => {
+            gameState.stats[res] += settings.resourceMod;
+        });
+
+        // Apply Character Mods
+        for (const [key, value] of Object.entries(mods)) {
+            if (gameState.stats.hasOwnProperty(key)) gameState.stats[key] += value;
+        }
+        clampStats();
+    }
+
+    function clampStats() {
+        gameState.stats.hunger = Math.max(0, Math.min(100, gameState.stats.hunger));
+        gameState.stats.resilience = Math.max(0, Math.min(100, gameState.stats.resilience));
+        gameState.stats.trust = Math.max(0, Math.min(100, gameState.stats.trust));
+        
+        ['food', 'water', 'money', 'knowledge'].forEach(r => {
+            if (gameState.stats[r] < 0) gameState.stats[r] = 0;
+        });
+        updateActionButtons();
+        
+        if(gameState.active) checkWinLose();
+    }
+
+    function checkWinLose() {
+        const s = gameState.stats;
+        let gameOver = false;
+        let win = false;
+        let reason = "";
+        let icon = "";
+
+        // Instant Loss Conditions
+        if (s.hunger >= 100) {
+            gameOver = true; reason = "You collapsed from starvation."; icon = "☠️";
+        } else if (s.resilience <= 0) {
+            gameOver = true; reason = "You succumbed to exhaustion and illness."; icon = "🚑";
+        } else if (s.trust <= 0) {
+            gameOver = true; reason = "The community exiled you for hoarding resources."; icon = "🚷";
+        } else if (gameState.day > 30) {
+            // End of Game Check
+            gameOver = true; 
+            if (s.hunger < 10 && s.resilience > 80) {
+                win = true; 
+                reason = "You survived 30 days and built a thriving community! Victory!"; 
+                icon = "🏆";
+            } else {
+                reason = "Day 30 reached, but you are not thriving (Hunger > 10% or Res < 80%). Winter takes its toll."; 
+                icon = "❄️";
+            }
+        }
+
+        if (gameOver) {
+            gameState.active = false;
+            triggerEndScreen(win, reason, icon);
+        }
+    }
+
+    function triggerEndScreen(win, reason, icon) {
+        const titleEl = document.getElementById('end-title');
+        const iconEl = document.getElementById('end-icon');
+        
+        playSound(win ? 'win' : 'error');
+        
+        iconEl.innerText = icon;
+        document.getElementById('end-message').innerText = reason;
+        
+        document.getElementById('end-stat-days').innerText = gameState.day;
+        document.getElementById('end-stat-trust').innerText = gameState.stats.trust + "%";
+        document.getElementById('end-stat-res').innerText = (gameState.stats.food + gameState.stats.water + gameState.stats.money);
+        document.getElementById('end-stat-know').innerText = gameState.stats.knowledge;
+
+        if (win) {
+            titleEl.innerText = "Victory!";
+            titleEl.className = "win-title";
+        } else {
+            titleEl.innerText = "Defeat";
+            titleEl.className = "lose-title";
+        }
+
+        setTimeout(() => showScreen('end'), 1000);
+    }
+
+    function updateActionButtons() {
+        document.getElementById('btn-action-eat').disabled = gameState.stats.food <= 0;
+        document.getElementById('btn-action-drink').disabled = gameState.stats.water <= 0;
+    }
+
+    function updateStatsUI() {
+        const s = gameState.stats;
+        uiStats.hungerVal.innerText = s.hunger + '%';
+        uiStats.resilienceVal.innerText = s.resilience + '%';
+        uiStats.trustVal.innerText = s.trust + '%';
+        uiStats.food.innerText = s.food;
+        uiStats.water.innerText = s.water;
+        uiStats.money.innerText = s.money;
+        uiStats.know.innerText = s.knowledge;
+        uiStats.day.innerText = 'Day ' + gameState.day + ' / 30';
+
+        // Update visual bars
+        uiStats.hungerBar.style.width = s.hunger + '%';
+        uiStats.resilienceBar.style.width = s.resilience + '%';
+        uiStats.trustBar.style.width = s.trust + '%';
+        
+        // Update day progress
+        let progress = ((gameState.day - 1) / 30) * 100;
+        uiStats.dayProgress.style.width = progress + '%';
+
+        // Color Logic
+        uiStats.hungerBar.style.backgroundColor = s.hunger < 40 ? '#8cba80' : (s.hunger < 70 ? '#f0ad4e' : '#d9534f');
+        uiStats.resilienceBar.style.backgroundColor = s.resilience > 60 ? '#8cba80' : (s.resilience > 30 ? '#f0ad4e' : '#d9534f');
+        uiStats.trustBar.style.backgroundColor = s.trust > 60 ? '#8cba80' : (s.trust > 30 ? '#f0ad4e' : '#d9534f');
+    }
+
+    function playerEat(btn) {
+        if (!gameState.active) return;
+        if(gameState.stats.food > 0) {
+            playSound('success');
+            gameState.stats.food--;
+            gameState.stats.hunger -= 20;
+            log("You ate a meal. Hunger -20%.");
+            spawnFloatText(btn, "-1 Food", "#d9534f");
+            spawnFloatText(document.getElementById('bar-hunger'), "-20%", "#8cba80");
+            clampStats();
+            updateStatsUI();
+        } else {
+            playSound('error');
+            triggerShake();
+        }
+    }
+
+    function playerDrink(btn) {
+        if (!gameState.active) return;
+        if(gameState.stats.water > 0) {
+            playSound('success');
+            gameState.stats.water--;
+            gameState.stats.resilience += 5;
+            log("You drank water. Resilience +5%.");
+            spawnFloatText(btn, "-1 Water", "#d9534f");
+            spawnFloatText(document.getElementById('bar-resilience'), "+5%", "#8cba80");
+            clampStats();
+            updateStatsUI();
+        } else {
+            playSound('error');
+            triggerShake();
+        }
+    }
+
+    function advanceDay() {
+        if (!gameState.active) return;
+        playSound('click');
+
+        // Apply Difficulty Settings
+        const settings = difficultySettings[difficulty];
+        let hungerGain = settings.hungerRate;
+        let trustLoss = settings.trustDecay;
+
+        if (gameState.selectedCharacter.trait === "Community Leader") {
+            trustLoss = Math.floor(trustLoss / 2);
+        }
+
+        gameState.stats.hunger += hungerGain;
+        gameState.stats.trust -= trustLoss;
+
+        let consequences = [];
+        let tookDamage = false;
+
+        if (gameState.stats.hunger >= 80) {
+            gameState.stats.resilience -= 10;
+            consequences.push("Starvation hurt your health (-10 Res).");
+            tookDamage = true;
+        }
+        if (gameState.stats.trust <= 20) {
+            gameState.stats.resilience -= 5;
+            consequences.push("Low trust caused stress (-5 Res).");
+            tookDamage = true;
+        }
+        
+        if (tookDamage) {
+            triggerShake();
+            playSound('error');
+        }
+
+        gameState.day++;
+        clampStats(); 
+        if (gameState.active) {
+            updateStatsUI();
+            triggerRandomEvent(consequences);
+        }
+    }
+
+    function triggerRandomEvent(dailyNotes = []) {
+        const eventTitle = document.getElementById('event-title');
+        const eventText = document.getElementById('event-text');
+        const eventResult = document.getElementById('event-result');
+        const dailySummary = document.getElementById('daily-summary');
+        const choiceContainer = document.getElementById('event-choices');
+
+        eventResult.style.display = 'none';
+        dailySummary.style.display = 'none';
+        choiceContainer.innerHTML = '';
+
+        if (dailyNotes.length > 0) {
+            dailySummary.innerHTML = "<strong>Night Report:</strong><br>" + dailyNotes.join("<br>");
+            dailySummary.style.display = 'block';
+        }
+
+        // Logic to prevent repeating the same event twice
+        let availableEvents = eventsData.filter(e => e.id !== gameState.lastEventId);
+        // Fallback just in case logic fails
+        if(availableEvents.length === 0) availableEvents = eventsData;
+
+        const randomEvent = availableEvents[Math.floor(Math.random() * availableEvents.length)];
+        gameState.lastEventId = randomEvent.id;
+
+        eventTitle.innerText = randomEvent.title;
+        eventText.innerText = randomEvent.text;
+
+        randomEvent.choices.forEach(choice => {
+            if (choice.reqTrait && gameState.selectedCharacter.trait !== choice.reqTrait) return;
+
+            const btn = document.createElement('button');
+            const effectPreview = formatChoiceEffects(choice.effect);
+            if (choice.reqTrait) {
+                btn.className = 'trait-choice';
+                btn.innerHTML = `<span class="trait-badge">★ ${choice.reqTrait}</span> ${choice.text}<span class="choice-effect-preview">${effectPreview}</span>`;
+            } else {
+                btn.className = 'choice-btn';
+                btn.innerHTML = `${choice.text}<span class="choice-effect-preview">${effectPreview}</span>`;
+            }
+            btn.onclick = () => handleChoice(choice);
+            choiceContainer.appendChild(btn);
+        });
+    }
+
+    function formatChoiceEffects(effect) {
+        return Object.entries(effect)
+            .filter(([, value]) => value !== 0)
+            .map(([key, value]) => {
+                const meta = effectMeta[key] || { label: key, unit: '' };
+                const sign = value > 0 ? '+' : '';
+                return `${sign}${value}${meta.unit} ${meta.label}`;
+            })
+            .join(' • ');
+    }
+
+    function handleChoice(choice) {
+        if (!gameState.active) return;
+        playSound('click');
+
+        for (const [key, value] of Object.entries(choice.effect)) {
+            if (gameState.stats.hasOwnProperty(key)) gameState.stats[key] += value;
+        }
+        clampStats();
+        
+        if (gameState.active) {
+            updateStatsUI();
+            const eventResult = document.getElementById('event-result');
+            const choiceContainer = document.getElementById('event-choices');
+            
+            eventResult.innerText = choice.msg;
+            eventResult.style.display = 'block';
+            
+            choiceContainer.innerHTML = '';
+            const nextBtn = document.createElement('button');
+            nextBtn.innerText = "End Day";
+            nextBtn.className = "secondary";
+            nextBtn.onclick = advanceDay;
+            choiceContainer.appendChild(nextBtn);
+        }
+    }
+
+    function startGame() {
+        if (!gameState.selectedCharacter) return;
+        playSound('success');
+        const char = gameState.selectedCharacter;
+        document.getElementById('game-avatar').innerText = char.avatar;
+        document.getElementById('game-char-name').innerText = char.name;
+        document.getElementById('game-char-trait').innerText = `${char.trait}: ${char.traitDesc}`;
+        document.getElementById('header-profile-name').innerText = char.name.split(' ')[0];
+        initializeGameStats();
+        updateStatsUI();
+        showScreen('game');
+        triggerRandomEvent();
+    }
+
+    // --- LISTENERS ---
+    buttons.start.addEventListener('click', () => { playSound('click'); initCharacterSelection(); showScreen('charSelect'); });
+    buttons.confirmChar.addEventListener('click', startGame);
+    buttons.restart.addEventListener('click', () => { playSound('click'); initCharacterSelection(); showScreen('charSelect'); });
+    buttons.menu.addEventListener('click', () => { playSound('click'); showScreen('start'); });
+
+</script>
+
+</body>
+</html>
