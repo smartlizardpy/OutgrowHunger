@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="copyright" content="Made by Ateş Demir and Ozan Kaygusuz">
     <title>Outgrow Hunger</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%8C%B1%3C/text%3E%3C/svg%3E">
     <style>
@@ -449,6 +450,85 @@
         .trait-choice .choice-effect-preview {
             color: rgba(255, 255, 255, 0.9);
         }
+        .minigame-content {
+            text-align: center;
+        }
+        #minigame-stage {
+            margin-top: 14px;
+        }
+        .minigame-hint {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 10px;
+        }
+        .reflex-track {
+            position: relative;
+            height: 20px;
+            background: #ececec;
+            border-radius: 999px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+        .reflex-zone {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 45%;
+            width: 20%;
+            background: rgba(140, 186, 128, 0.8);
+        }
+        .reflex-marker {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #d9534f;
+            box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+        }
+        .guess-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .guess-btn {
+            margin-top: 0;
+            padding: 14px 8px;
+            font-size: 1.4rem;
+        }
+        .plant-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .plant-plot {
+            margin-top: 0;
+            height: 56px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1.6rem;
+            background: #f8f8f8;
+        }
+        .plant-plot.good {
+            background: #eef8ee;
+            border-color: #8cba80;
+        }
+        .plant-plot.bad {
+            background: #fff1f1;
+            border-color: #d9534f;
+        }
+        .sequence-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .sequence-btn {
+            margin-top: 0;
+            font-size: 1.5rem;
+            padding: 12px 8px;
+        }
         
         /* End Screen */
         #end-screen { justify-content: center; text-align: center; }
@@ -471,6 +551,18 @@
         @media (max-width: 480px) {
             body { padding: 0; background-color: var(--card-bg); }
             #game-container { border-radius: 0; min-height: 100vh; box-shadow: none; max-width: 100%; }
+        }
+
+        .site-credit {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 8px;
+            text-align: center;
+            font-size: 0.78rem;
+            color: #666;
+            z-index: 200;
+            pointer-events: none;
         }
     </style>
 </head>
@@ -529,6 +621,16 @@
             <p>You lose immediately if Hunger hits 100%, Resilience hits 0%, or Trust hits 0%.</p>
             
             <button onclick="toggleModal(false)" style="margin-top: 20px;">Got it!</button>
+        </div>
+    </div>
+    <div class="modal-overlay" id="minigame-modal">
+        <div class="modal-content minigame-content">
+            <h2 id="minigame-title">Challenge</h2>
+            <p id="minigame-text">Complete this mini-game for a better outcome.</p>
+            <div id="minigame-stage"></div>
+            <p id="minigame-hint" class="minigame-hint"></p>
+            <button id="minigame-action">Start</button>
+            <button id="minigame-cancel" class="secondary">Skip Challenge</button>
         </div>
     </div>
 
@@ -632,6 +734,8 @@
 
 </div>
 
+<p class="site-credit">Copyright © Made by Ateş Demir and Ozan Kaygusuz</p>
+
 <script>
     // --- AUDIO SYSTEM ---
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -690,17 +794,18 @@
     // --- GAME DATA ---
     const eventsData = [
         { id: 1, title: "Community Garden", text: "The neighborhood is starting a shared garden. They need volunteers.", choices: [{ text: "Volunteer time", effect: { hunger: 10, trust: 15, resilience: -10 }, msg: "You worked hard. The community appreciates it." }, { text: "Donate $5", effect: { money: -5, trust: 10, knowledge: 5 }, msg: "Your donation helped buy premium seeds." }, { text: "Lead the Project", reqTrait: "Community Leader", effect: { trust: 25, resilience: -5 }, msg: "Your leadership inspired everyone!" }] },
-        { id: 2, title: "Market Day Deal", text: "A local farmer is selling surplus vegetables at a huge discount.", choices: [{ text: "Buy cheap ($5)", effect: { money: -5, food: 15, hunger: -5 }, msg: "A great haul! You ate well tonight." }, { text: "Buy fresh ($10)", effect: { money: -10, food: 10, resilience: 5 }, msg: "Expensive, but healthy and safe." }, { text: "Haggle", reqTrait: "Negotiator", effect: { money: -5, food: 20 }, msg: "You talked them into a great deal." }] },
+        { id: 2, title: "Market Day Deal", text: "A local farmer is selling surplus vegetables at a huge discount.", choices: [{ text: "Buy cheap ($5)", effect: { money: -5, food: 15, hunger: -5 }, msg: "A great haul! You ate well tonight." }, { text: "Buy fresh ($10)", effect: { money: -10, food: 10, resilience: 5 }, msg: "Expensive, but healthy and safe." }, { text: "Haggle", reqTrait: "Negotiator", effect: { money: -5, food: 20 }, msg: "You talked them into a great deal.", minigame: { type: "sequence", successBonus: { money: 5, food: 5 }, failEffect: { trust: -5 }, successMsg: "You nailed the offer timing and got extra produce.", failMsg: "The deal got tense and trust took a hit." } }] },
         { id: 3, title: "Drought Warning", text: "The weather forecast predicts a heatwave. Water prices are rising.", choices: [{ text: "Stockpile Water ($5)", effect: { money: -5, water: 15, trust: -5 }, msg: "You have water, but neighbors think you're hoarding." }, { text: "Share supply", effect: { water: -5, trust: 20 }, msg: "You helped a neighbor. They won't forget it." }, { text: "Efficient Irrigation", reqTrait: "Green Thumb", effect: { water: 5, food: 5 }, msg: "You saved water with smart farming." }] },
         { id: 4, title: "School Fundraiser", text: "The local school needs books.", choices: [{ text: "Donate ($10)", effect: { money: -10, knowledge: 15, trust: 5 }, msg: "You learned a lot from the library." }, { text: "Volunteer", effect: { resilience: -15, knowledge: 10, trust: 10 }, msg: "Teaching is tiring but rewarding." }, { text: "Organize Event", reqTrait: "Community Leader", effect: { trust: 20, knowledge: 10 }, msg: "You raised huge funds." }] },
-        { id: 5, title: "Broken Fence", text: "A storm damaged your backyard fence.", choices: [{ text: "Fix it yourself", effect: { resilience: -20, hunger: 10, money: 0 }, msg: "Exhausting work, but free." }, { text: "Hire handyman ($15)", effect: { money: -15, resilience: 5 }, msg: "Costly, but saved your energy." }, { text: "Leave it", effect: { trust: -10, money: -5 }, msg: "Stray animals ate some food." }] },
+        { id: 5, title: "Broken Fence", text: "A storm damaged your backyard fence.", choices: [{ text: "Fix it yourself", effect: { resilience: -20, hunger: 10, money: 0 }, msg: "Exhausting work, but free.", minigame: { type: "reflex", successBonus: { resilience: 10, hunger: -5 }, failEffect: { resilience: -10 }, successMsg: "You kept a steady rhythm and worked efficiently.", failMsg: "You slipped while repairing and overexerted yourself." } }, { text: "Hire handyman ($15)", effect: { money: -15, resilience: 5 }, msg: "Costly, but saved your energy." }, { text: "Leave it", effect: { trust: -10, money: -5 }, msg: "Stray animals ate some food." }] },
         { id: 6, title: "Neighbor in Need", text: "An elderly neighbor is ill.", choices: [{ text: "Cook meal", effect: { food: -5, water: -2, trust: 20 }, msg: "Your kindness is known." }, { text: "Visit", effect: { resilience: -5, trust: 10 }, msg: "They appreciated the company." }, { text: "Treat Them", reqTrait: "Healer", effect: { trust: 25, knowledge: 5 }, msg: "You helped them recover." }] },
-        { id: 7, title: "Pest Infestation", text: "Beetles are eating the crops!", choices: [{ text: "Buy Pesticide ($10)", effect: { money: -10, food: 5 }, msg: "Chemicals worked." }, { text: "Handpick them", effect: { resilience: -15, food: 5, hunger: 5 }, msg: "Backbreaking work." }, { text: "Natural Remedy", reqTrait: "Green Thumb", effect: { food: 15, trust: 5 }, msg: "You used herbs to repel them." }] },
+        { id: 7, title: "Pest Infestation", text: "Beetles are eating the crops!", choices: [{ text: "Buy Pesticide ($10)", effect: { money: -10, food: 5 }, msg: "Chemicals worked." }, { text: "Handpick them", effect: { resilience: -15, food: 5, hunger: 5 }, msg: "Backbreaking work.", minigame: { type: "guess", successBonus: { food: 5 }, failEffect: { hunger: 5 }, successMsg: "You spotted the major nests quickly.", failMsg: "You chased the wrong patches and lost time." } }, { text: "Natural Remedy", reqTrait: "Green Thumb", effect: { food: 15, trust: 5 }, msg: "You used herbs to repel them." }] },
         { id: 8, title: "Flu Season", text: "A bad flu is going around.", choices: [{ text: "Buy Medicine ($15)", effect: { money: -15, resilience: 20 }, msg: "You feel strong." }, { text: "Rest at home", effect: { hunger: 5, resilience: 10, money: 0 }, msg: "You saved energy." }, { text: "Preventative Care", reqTrait: "Healer", effect: { resilience: 25, trust: 10 }, msg: "You stayed healthy." }] },
         { id: 9, title: "Traveling Merchant", text: "A merchant is selling rare items.", choices: [{ text: "Buy Seeds ($10)", effect: { money: -10, food: 15 }, msg: "Great harvest potential." }, { text: "Buy Books ($10)", effect: { money: -10, knowledge: 20 }, msg: "Knowledge is power." }, { text: "Bulk Discount", reqTrait: "Negotiator", effect: { money: -10, food: 15, knowledge: 15 }, msg: "A 2-for-1 deal!" }] },
-        { id: 10, title: "Neighborhood Dispute", text: "Two families are fighting.", choices: [{ text: "Stay out", effect: { trust: -5 }, msg: "Morale drops." }, { text: "Pick side", effect: { trust: -10, resilience: -5 }, msg: "You made enemies." }, { text: "Mediate", reqTrait: "Community Leader", effect: { trust: 30 }, msg: "Peace restored." }] },
-        { id: 11, title: "Roof Leak", text: "Heavy rain is leaking in.", choices: [{ text: "Patch it", effect: { resilience: -10, water: 5 }, msg: "You caught rainwater." }, { text: "Ignore it", effect: { food: -10, resilience: -5 }, msg: "Mold grew on food." }, { text: "Barter repair", reqTrait: "Negotiator", effect: { money: -5, resilience: 5 }, msg: "Traded junk for repair." }] },
-        { id: 12, title: "Wild Berries", text: "Found berries in the woods.", choices: [{ text: "Eat them", effect: { food: 10, resilience: -10 }, msg: "They were sour." }, { text: "Leave them", effect: { hunger: 5 }, msg: "Better safe than sorry." }, { text: "Identify", reqTrait: "Green Thumb", effect: { food: 20, resilience: 5 }, msg: "Superfood!" }] }
+        { id: 10, title: "Neighborhood Dispute", text: "Two families are fighting.", choices: [{ text: "Stay out", effect: { trust: -5 }, msg: "Morale drops." }, { text: "Pick side", effect: { trust: -10, resilience: -5 }, msg: "You made enemies." }, { text: "Mediate", reqTrait: "Community Leader", effect: { trust: 30 }, msg: "Peace restored.", minigame: { type: "reflex", successBonus: { trust: 10 }, failEffect: { trust: -10 }, successMsg: "You timed your words perfectly for both sides.", failMsg: "Your timing was off and tensions rose again." } }] },
+        { id: 11, title: "Roof Leak", text: "Heavy rain is leaking in.", choices: [{ text: "Patch it", effect: { resilience: -10, water: 5 }, msg: "You caught rainwater.", minigame: { type: "sequence", successBonus: { resilience: 8, water: 4 }, failEffect: { resilience: -6 }, successMsg: "You sealed the weak points in the right order.", failMsg: "You patched the wrong spots and got soaked." } }, { text: "Ignore it", effect: { food: -10, resilience: -5 }, msg: "Mold grew on food." }, { text: "Barter repair", reqTrait: "Negotiator", effect: { money: -5, resilience: 5 }, msg: "Traded junk for repair." }] },
+        { id: 12, title: "Wild Berries", text: "Found berries in the woods.", choices: [{ text: "Eat them", effect: { food: 10, resilience: -10 }, msg: "They were sour." }, { text: "Leave them", effect: { hunger: 5 }, msg: "Better safe than sorry." }, { text: "Identify", reqTrait: "Green Thumb", effect: { food: 20, resilience: 5 }, msg: "Superfood!", minigame: { type: "guess", successBonus: { food: 6 }, failEffect: { resilience: -5 }, successMsg: "You picked only safe berries.", failMsg: "One bad berry upset your stomach." } }] },
+        { id: 13, title: "Planting Day", text: "Rain is forecast tomorrow. Today is perfect for planting quick crops.", choices: [{ text: "Plant crops now", effect: { water: -2, money: -3, food: 10 }, msg: "You planted a fresh row of crops.", minigame: { type: "plant", successBonus: { food: 12, knowledge: 5 }, failEffect: { food: -4, water: -1 }, successMsg: "Great placement. Most seeds took root.", failMsg: "Poor soil choice wasted some seeds." } }, { text: "Save resources", effect: { trust: -5 }, msg: "Neighbors expected you to help with food prep." }, { text: "Ask neighbors to join", effect: { trust: 12, food: 4 }, msg: "Shared work got a small harvest in quickly." }] }
     ];
 
     // --- CHARACTER DATA ---
@@ -728,6 +833,19 @@
         day: 1,
         active: false,
         lastEventId: null
+    };
+    let minigameState = {
+        active: false,
+        choice: null,
+        intervalId: null,
+        running: false,
+        position: 0,
+        direction: 1,
+        winningPicks: [1, 2],
+        plantTargets: [],
+        plantedGood: 0,
+        sequenceTarget: [],
+        sequenceIndex: 0
     };
 
     // --- UI CONTROLLER ---
@@ -759,6 +877,15 @@
         day: document.getElementById('day-display'),
         log: document.getElementById('game-log'),
         dayProgress: document.getElementById('day-progress-bar')
+    };
+    const minigameUI = {
+        modal: document.getElementById('minigame-modal'),
+        title: document.getElementById('minigame-title'),
+        text: document.getElementById('minigame-text'),
+        stage: document.getElementById('minigame-stage'),
+        hint: document.getElementById('minigame-hint'),
+        action: document.getElementById('minigame-action'),
+        cancel: document.getElementById('minigame-cancel')
     };
 
     const effectMeta = {
@@ -1076,12 +1203,13 @@
 
             const btn = document.createElement('button');
             const effectPreview = formatChoiceEffects(choice.effect);
+            const miniTag = choice.minigame ? ' • Challenge' : '';
             if (choice.reqTrait) {
                 btn.className = 'trait-choice';
-                btn.innerHTML = `<span class="trait-badge">★ ${choice.reqTrait}</span> ${choice.text}<span class="choice-effect-preview">${effectPreview}</span>`;
+                btn.innerHTML = `<span class="trait-badge">★ ${choice.reqTrait}</span> ${choice.text}<span class="choice-effect-preview">${effectPreview}${miniTag}</span>`;
             } else {
                 btn.className = 'choice-btn';
-                btn.innerHTML = `${choice.text}<span class="choice-effect-preview">${effectPreview}</span>`;
+                btn.innerHTML = `${choice.text}<span class="choice-effect-preview">${effectPreview}${miniTag}</span>`;
             }
             btn.onclick = () => handleChoice(choice);
             choiceContainer.appendChild(btn);
@@ -1102,27 +1230,199 @@
     function handleChoice(choice) {
         if (!gameState.active) return;
         playSound('click');
+        if (choice.minigame) {
+            launchMiniGame(choice);
+            return;
+        }
+        applyChoiceResult(choice, true);
+    }
+    function mergeEffects(baseEffect, bonusEffect = {}) {
+        const merged = { ...baseEffect };
+        for (const [key, value] of Object.entries(bonusEffect)) {
+            merged[key] = (merged[key] || 0) + value;
+        }
+        return merged;
+    }
+    function applyChoiceResult(choice, success) {
+        let finalEffect = { ...choice.effect };
+        let resultMessage = choice.msg;
 
-        for (const [key, value] of Object.entries(choice.effect)) {
+        if (choice.minigame) {
+            if (success) {
+                finalEffect = mergeEffects(finalEffect, choice.minigame.successBonus);
+                resultMessage = `${choice.msg} ${choice.minigame.successMsg}`;
+                playSound('success');
+            } else {
+                finalEffect = mergeEffects(finalEffect, choice.minigame.failEffect);
+                resultMessage = choice.minigame.failMsg;
+                triggerShake();
+                playSound('error');
+            }
+        }
+
+        for (const [key, value] of Object.entries(finalEffect)) {
             if (gameState.stats.hasOwnProperty(key)) gameState.stats[key] += value;
         }
         clampStats();
-        
-        if (gameState.active) {
-            updateStatsUI();
-            const eventResult = document.getElementById('event-result');
-            const choiceContainer = document.getElementById('event-choices');
-            
-            eventResult.innerText = choice.msg;
-            eventResult.style.display = 'block';
-            
-            choiceContainer.innerHTML = '';
-            const nextBtn = document.createElement('button');
-            nextBtn.innerText = "End Day";
-            nextBtn.className = "secondary";
-            nextBtn.onclick = advanceDay;
-            choiceContainer.appendChild(nextBtn);
+        if (!gameState.active) return;
+
+        updateStatsUI();
+        const eventResult = document.getElementById('event-result');
+        const choiceContainer = document.getElementById('event-choices');
+        eventResult.innerText = resultMessage;
+        eventResult.style.display = 'block';
+
+        choiceContainer.innerHTML = '';
+        const nextBtn = document.createElement('button');
+        nextBtn.innerText = "End Day";
+        nextBtn.className = "secondary";
+        nextBtn.onclick = advanceDay;
+        choiceContainer.appendChild(nextBtn);
+    }
+    function launchMiniGame(choice) {
+        minigameState.active = true;
+        minigameState.choice = choice;
+        minigameState.running = false;
+        if (minigameState.intervalId) clearInterval(minigameState.intervalId);
+        minigameState.intervalId = null;
+
+        minigameUI.text.innerText = "Complete this challenge for a better outcome.";
+        minigameUI.cancel.style.display = 'block';
+        minigameUI.modal.classList.add('open');
+
+        if (choice.minigame.type === 'reflex') {
+            minigameState.position = 0;
+            minigameState.direction = 1;
+            minigameUI.title.innerText = "Timing Challenge";
+            minigameUI.hint.innerText = "Press Start, then Stop the marker inside the green zone.";
+            minigameUI.stage.innerHTML = `<div class="reflex-track"><div class="reflex-zone"></div><div id="reflex-marker" class="reflex-marker" style="left: 0%;"></div></div>`;
+            minigameUI.action.style.display = 'block';
+            minigameUI.action.innerText = "Start";
+            minigameUI.action.onclick = playReflexGame;
+        } else if (choice.minigame.type === 'guess') {
+            const safeStart = Math.floor(Math.random() * 3) + 1;
+            minigameState.winningPicks = [safeStart, ((safeStart % 3) + 1)];
+            minigameUI.title.innerText = "Quick Pick";
+            minigameUI.hint.innerText = "Easy mode: 2 of 3 picks are safe.";
+            minigameUI.stage.innerHTML = `
+                <div class="guess-grid">
+                    <button class="guess-btn" data-pick="1">1</button>
+                    <button class="guess-btn" data-pick="2">2</button>
+                    <button class="guess-btn" data-pick="3">3</button>
+                </div>`;
+            minigameUI.action.style.display = 'none';
+            minigameUI.stage.querySelectorAll('.guess-btn').forEach(btn => {
+                btn.onclick = () => resolveGuessGame(Number(btn.dataset.pick), btn);
+            });
+        } else if (choice.minigame.type === 'plant') {
+            minigameState.plantTargets = [];
+            while (minigameState.plantTargets.length < 4) {
+                const pick = Math.floor(Math.random() * 9);
+                if (!minigameState.plantTargets.includes(pick)) minigameState.plantTargets.push(pick);
+            }
+            minigameState.plantedGood = 0;
+            minigameUI.title.innerText = "Plant Crops";
+            minigameUI.hint.innerText = "Click 4 fertile plots (green) to plant seeds.";
+            minigameUI.stage.innerHTML = `<div class="plant-grid">${
+                Array.from({ length: 9 }).map((_, i) => {
+                    const isGood = minigameState.plantTargets.includes(i);
+                    return `<button class="plant-plot ${isGood ? 'good' : ''}" data-plot="${i}">🟫</button>`;
+                }).join('')
+            }</div>`;
+            minigameUI.action.style.display = 'none';
+            minigameUI.stage.querySelectorAll('.plant-plot').forEach(btn => {
+                btn.onclick = () => resolvePlantGame(btn);
+            });
+        } else if (choice.minigame.type === 'sequence') {
+            const icons = ['🌱', '💧', '☀️'];
+            minigameState.sequenceTarget = [...icons].sort(() => Math.random() - 0.5);
+            minigameState.sequenceIndex = 0;
+            minigameUI.title.innerText = "Order Challenge";
+            minigameUI.hint.innerText = `Tap in order: ${minigameState.sequenceTarget.join(' -> ')}`;
+            minigameUI.stage.innerHTML = `
+                <div class="sequence-row">
+                    <button class="sequence-btn" data-icon="🌱">🌱</button>
+                    <button class="sequence-btn" data-icon="💧">💧</button>
+                    <button class="sequence-btn" data-icon="☀️">☀️</button>
+                </div>`;
+            minigameUI.action.style.display = 'none';
+            minigameUI.stage.querySelectorAll('.sequence-btn').forEach(btn => {
+                btn.onclick = () => resolveSequenceGame(btn.dataset.icon, btn);
+            });
         }
+    }
+    function playReflexGame() {
+        const marker = document.getElementById('reflex-marker');
+        if (!marker) return;
+
+        if (!minigameState.running) {
+            minigameState.running = true;
+            minigameUI.action.innerText = "Stop";
+            minigameState.intervalId = setInterval(() => {
+                minigameState.position += 1.8 * minigameState.direction;
+                if (minigameState.position >= 98) minigameState.direction = -1;
+                if (minigameState.position <= 0) minigameState.direction = 1;
+                marker.style.left = `${Math.max(0, Math.min(98, minigameState.position))}%`;
+            }, 16);
+            return;
+        }
+
+        if (minigameState.intervalId) clearInterval(minigameState.intervalId);
+        minigameState.intervalId = null;
+        minigameState.running = false;
+        const success = minigameState.position >= 35 && minigameState.position <= 75;
+        finishMiniGame(success);
+    }
+    function resolveGuessGame(pick, button) {
+        const success = minigameState.winningPicks.includes(pick);
+        minigameUI.stage.querySelectorAll('.guess-btn').forEach(btn => btn.disabled = true);
+        button.style.borderColor = success ? '#4a7c59' : '#d9534f';
+        setTimeout(() => finishMiniGame(success), 300);
+    }
+    function resolvePlantGame(button) {
+        if (button.disabled) return;
+        const plotIndex = Number(button.dataset.plot);
+        const isGood = minigameState.plantTargets.includes(plotIndex);
+        button.disabled = true;
+
+        if (isGood) {
+            minigameState.plantedGood += 1;
+            button.innerText = '🌱';
+            button.style.borderColor = '#4a7c59';
+            if (minigameState.plantedGood >= 4) {
+                setTimeout(() => finishMiniGame(true), 250);
+            }
+        } else {
+            button.innerText = '🪨';
+            button.classList.add('bad');
+            minigameUI.stage.querySelectorAll('.plant-plot').forEach(btn => btn.disabled = true);
+            setTimeout(() => finishMiniGame(false), 250);
+        }
+    }
+    function resolveSequenceGame(icon, button) {
+        if (button.disabled) return;
+        const expected = minigameState.sequenceTarget[minigameState.sequenceIndex];
+        if (icon === expected) {
+            button.disabled = true;
+            button.style.borderColor = '#4a7c59';
+            minigameState.sequenceIndex += 1;
+            if (minigameState.sequenceIndex >= minigameState.sequenceTarget.length) {
+                setTimeout(() => finishMiniGame(true), 250);
+            }
+        } else {
+            button.style.borderColor = '#d9534f';
+            minigameUI.stage.querySelectorAll('.sequence-btn').forEach(btn => btn.disabled = true);
+            setTimeout(() => finishMiniGame(false), 250);
+        }
+    }
+    function finishMiniGame(success) {
+        if (minigameState.intervalId) clearInterval(minigameState.intervalId);
+        minigameState.intervalId = null;
+        minigameUI.modal.classList.remove('open');
+        minigameState.active = false;
+        const choice = minigameState.choice;
+        minigameState.choice = null;
+        if (choice) applyChoiceResult(choice, success);
     }
 
     function startGame() {
@@ -1144,6 +1444,7 @@
     buttons.confirmChar.addEventListener('click', startGame);
     buttons.restart.addEventListener('click', () => { playSound('click'); initCharacterSelection(); showScreen('charSelect'); });
     buttons.menu.addEventListener('click', () => { playSound('click'); showScreen('start'); });
+    minigameUI.cancel.addEventListener('click', () => finishMiniGame(false));
 
 </script>
 
