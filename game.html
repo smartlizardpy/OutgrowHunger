@@ -787,7 +787,7 @@
             <p>After the event, use your <strong>Action Bar</strong> to eat (Bread) or drink (Water) if your stats are critical.</p>
             
             <h3>3. End the Day</h3>
-            <p>Click "End Day" to sleep. <br><strong>Warning:</strong> Hunger rises (+10) and Trust falls (-5) every night.</p>
+            <p>Click "End Day" to sleep. <br><strong>Warning:</strong> Hunger rises and Trust falls each night (amount depends on difficulty and your trust momentum).</p>
             
             <h3>4. Win Conditions</h3>
             <p>On <strong>Day 30</strong>, you must have:<br>
@@ -1091,7 +1091,10 @@
         active: false,
         lastEventId: null,
         lastEventCategory: 'general',
-        dailySoldFood: 0
+        dailySoldFood: 0,
+        trustMomentum: 0,
+        highTrustStreak: 0,
+        trustRescueUsed: false
     };
     let minigameState = {
         active: false,
@@ -1236,6 +1239,11 @@
     function applyTrustDelta(delta, source) {
         const before = gameState.stats.trust;
         gameState.stats.trust += delta;
+        if (delta > 0) {
+            gameState.trustMomentum = Math.min(4, gameState.trustMomentum + Math.ceil(delta / 8));
+        } else if (delta < 0) {
+            gameState.trustMomentum = Math.max(0, gameState.trustMomentum - 1);
+        }
         dbg(`Trust ${delta >= 0 ? '+' : ''}${delta} from ${source}`, { before, after: gameState.stats.trust, day: gameState.day });
     }
 
@@ -1332,6 +1340,9 @@
         gameState.lastEventId = null;
         gameState.lastEventCategory = 'general';
         gameState.dailySoldFood = 0;
+        gameState.trustMomentum = 0;
+        gameState.highTrustStreak = 0;
+        gameState.trustRescueUsed = false;
         
         const settings = difficultySettings[difficulty];
         const mods = gameState.selectedCharacter.startingMods;
@@ -1523,12 +1534,17 @@
         if (gameState.stats.trust >= 70) {
             trustLoss = Math.max(1, trustLoss - 2);
         }
+        if (gameState.trustMomentum > 0) {
+            trustLoss = Math.max(1, trustLoss - 1);
+            gameState.trustMomentum -= 1;
+        }
 
         gameState.stats.hunger += hungerGain;
         applyTrustDelta(-trustLoss, 'Nightly decay');
 
         let consequences = [];
         let tookDamage = false;
+        consequences.push(`Nightly pressure: Hunger +${hungerGain}, Trust -${trustLoss}.`);
 
         if (gameState.stats.hunger >= 80) {
             gameState.stats.resilience -= 10;
@@ -1546,6 +1562,28 @@
             gameState.stats.water += 2;
             applyTrustDelta(4, 'Community support event');
             consequences.push("Community support arrived (+3 Food, +2 Water, +4 Trust).");
+        }
+
+        if (gameState.stats.trust >= 70) {
+            gameState.highTrustStreak += 1;
+        } else {
+            gameState.highTrustStreak = 0;
+        }
+
+        if (gameState.highTrustStreak >= 3) {
+            gameState.highTrustStreak = 0;
+            gameState.stats.food += 2;
+            gameState.stats.water += 2;
+            gameState.stats.money += 3;
+            consequences.push("Trusted Network Bonus: +2 Food, +2 Water, +$3.");
+        }
+
+        if (!gameState.trustRescueUsed && gameState.day >= 8 && gameState.stats.trust <= 10) {
+            gameState.trustRescueUsed = true;
+            gameState.stats.food += 2;
+            gameState.stats.water += 2;
+            applyTrustDelta(12, 'Emergency community intervention');
+            consequences.push("Emergency intervention: community leaders stepped in (+12 Trust, +2 Food, +2 Water).");
         }
 
         if (tookDamage) {
