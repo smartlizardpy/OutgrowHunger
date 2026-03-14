@@ -1,0 +1,26 @@
+Good afternoon,
+
+I'm writing the feedback about the game you shared with me and you can check out the games that were submitted in the past through the link below. Your category will be "Junior". I'm also sharing the handbook just in case you haven't checked it yet. 
+
+https://learn.gamesforchange.org/student-arcade 
+
+ SC-25-26-Competition-Guide-v7 (1).pdf (https://drive.google.com/file/d/1k9c3dczaysv0jD-IL4BwUIDYJWkOt8vN/view?usp=drive_web)
+
+You can also check out the resources related to your game's theme:
+
+https://learn.gamesforchange.org/themes/outgrow-hunger
+
+MOD SUGGESTIONS:
+Mini challenges could be made more challenging (puzzles, matching, timer, etc.)
+"Money" could be reworded directly as "Dollars" since everything is referred to as USD
+Make sure the player always uses each resource in some way (i.e. the farmer never uses "Knowledge")
+You can replace the emojis with AI-generated character avatars, background images, objects, sound effects (use licensing-free sites), etc. (Check out Canva AI if you have it; make separate folders for images, sounds, etc. and zip them all into one .exe file)
+It would be more professional if you can upload your game as an itch.io (http://itch.io/) URL (https://itch.io/)
+Ways to sell food for money? It's easy to gain food, but impossible to earn money back
+More details added to the narratives would make it more realistic and immersive 
+Make sure each choice has a balance between negative and positive outcomes (for example, the "family dispute" options are both negative and in the same category, so the player would always make the same choice)
+Gameplay note: I always chose the options that generated community trust, but the game ended because it went down to 0% (also, the community might suddenly help you out sometimes to make it more meaningful to gain their trust)
+The narrative elements might be more community-focused (having to provide food for the community/sell vs. keeping enough to feed yourself or pay your bills) or incorporate more specific real-world issues farmers/doctors/etc face to make it even more educational (you can base this on real news stories and research, data trends around the world)
+Overall, it was a super meaningful game and I had a lot of fun playing it! I can tell you put a lot of thought and effort into designing it. The game mechanics were all logical and I love that you gave the option to choose different characters with different skill sets and advantages. If you make the avatars more realistic and the narrative more detailed, it will feel much more immersive and make the player even more curious about what will happen next. I can't wait to see the next development! You can share it with me as soon as you're ready, and email me about any questions or issues you might have.
+
+When we come back from the break, we can make student accounts for you to submit it by March 30th.
