@@ -288,6 +288,13 @@
         .character-card:hover { border-color: var(--primary-color); background-color: #f9fdfa; transform: translateY(-3px); box-shadow: 0 8px 16px rgba(0,0,0,0.06); }
         .character-card.selected { border-color: var(--primary-color); background-color: #eef5ef; box-shadow: 0 0 0 2px var(--primary-color) inset; }
         .char-avatar-large { font-size: 3rem; margin-right: 15px; min-width: 60px; text-align: center; }
+        .char-avatar-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            object-fit: cover;
+            display: block;
+        }
         .char-info h3 { color: var(--primary-color); margin-bottom: 5px; }
         .char-info p { font-size: 0.9rem; margin-bottom: 5px; color: #555; }
         .char-stats { font-size: 0.8rem; color: #777; font-style: italic; }
@@ -385,11 +392,22 @@
             margin-bottom: 0;
         }
         .avatar-circle {
-            width: 45px; height: 45px;
-            background: var(--accent-color);
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.8rem; margin-right: 15px;
+            width: 56px;
+            height: 56px;
+            background: transparent;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        .avatar-circle img {
+            width: 100%;
+            height: 100%;
+            border-radius: 0;
+            object-fit: contain;
+            display: block;
         }
 
         /* Stats System */
@@ -666,6 +684,86 @@
             font-size: 1.5rem;
             padding: 12px 8px;
         }
+        .memory-seq {
+            font-size: 2rem;
+            letter-spacing: 6px;
+            margin-top: 10px;
+            min-height: 2.4rem;
+        }
+        .memory-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .memory-btn {
+            margin-top: 0;
+            font-size: 1.5rem;
+            padding: 10px 8px;
+        }
+        .rapid-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .rapid-count {
+            font-weight: 700;
+            color: #555;
+        }
+        .rapid-btn {
+            margin-top: 0;
+            width: 140px;
+            height: 140px;
+            border-radius: 999px;
+            font-size: 2rem;
+            font-weight: 800;
+            padding: 0;
+        }
+        .planning-wrap {
+            margin-top: 10px;
+            border: 1px solid #e7e7e7;
+            border-radius: 10px;
+            padding: 10px;
+            background: #fafafa;
+        }
+        .planning-remaining {
+            font-size: 0.9rem;
+            color: #555;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .planning-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto auto auto;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .planning-row:last-child {
+            margin-bottom: 0;
+        }
+        .planning-label {
+            text-align: left;
+            font-size: 0.88rem;
+            color: #555;
+            font-weight: 600;
+        }
+        .planning-count {
+            min-width: 24px;
+            text-align: center;
+            font-weight: 700;
+            color: #333;
+        }
+        .planning-step {
+            margin-top: 0;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            padding: 0;
+            font-size: 1rem;
+        }
         
         /* End Screen */
         #end-screen { justify-content: center; text-align: center; }
@@ -834,7 +932,7 @@
 
         <!-- Character Display -->
         <div class="character-display">
-            <div class="avatar-circle" id="game-avatar">?</div>
+            <div class="avatar-circle"><img id="game-avatar" src="" alt="Character portrait"></div>
             <div>
                 <strong id="game-char-name">Character Name</strong><br>
                 <small id="game-char-trait" style="color: var(--primary-color);">Trait</small>
@@ -870,7 +968,7 @@
             </button>
         </div>
         <div class="data-panel" id="data-panel">
-            <div class="data-panel-kicker">Hunger Data</div>
+            <div class="data-panel-kicker">Not So fun facts</div>
             <p class="data-panel-fact" id="data-panel-fact">Conflict, climate shocks, and high food prices are key hunger drivers.</p>
         </div>
 
@@ -978,86 +1076,86 @@
 
     // --- GAME DATA ---
     const eventsData = [
-        { id: 1, category: "community", title: "Community Garden", text: "The neighborhood council opens a shared plot near the school. Families ask you to join because harvest decisions this month will affect everyone.", choices: [
+        { id: 1, category: "community", title: "Community Garden", text: "The neighborhood council opens a shared plot near the school. Families ask you to join because harvest decisions this month will affect everyone. If this plot fails, several homes may need to buy expensive market food before payday.", choices: [
             { text: "Volunteer full shift", effect: { hunger: 9, trust: 12, resilience: -8, food: 4 }, msg: "You spent the day preparing beds and irrigation, and your commitment boosted morale." },
             { text: "Donate $6 for tools", effect: { money: -6, trust: 9, knowledge: 4 }, msg: "The donation bought gloves and hand tools. Parents thanked you publicly." },
             { text: "Run planning workshop (Use 5 Knowledge)", reqKnowledge: 5, effect: { knowledge: -5, trust: 12, food: 6, water: 2 }, msg: "You mapped crop rotations and water-sharing rules, reducing waste for everyone." },
             { text: "Lead the Project", reqTrait: "Community Leader", effect: { trust: 18, resilience: -4, knowledge: 5 }, msg: "You coordinated teams and settled disagreements before they escalated." }
         ]},
-        { id: 2, category: "economy", title: "Market Day Deal", text: "Prices swing at the weekly market. A farmer offers surplus produce if you can commit quickly before buyers from another district arrive.", choices: [
+        { id: 2, category: "economy", title: "Market Day Deal", text: "Prices swing at the weekly market. A farmer offers surplus produce if you can commit quickly before buyers from another district arrive. Transport costs rose this week, so late purchases will likely be much more expensive.", choices: [
             { text: "Buy budget produce ($5)", effect: { money: -5, food: 13, hunger: -3 }, msg: "You secured enough staples for several meals." },
             { text: "Buy premium produce ($10)", effect: { money: -10, food: 10, resilience: 6 }, msg: "More expensive, but the food quality improved your health." },
             { text: "Flip produce for profit", effect: { money: 8, food: -4, trust: -3 }, msg: "You sold quickly for cash, but neighbors noticed prices rose after your move." },
             { text: "Haggle bulk contract", reqTrait: "Negotiator", effect: { money: -4, food: 16, trust: 2 }, msg: "You negotiated a fair contract for both sides.", minigame: { type: "sequence", successBonus: { money: 5, food: 4 }, failEffect: { trust: -4 }, successMsg: "You timed each offer perfectly and got bonus crates.", failMsg: "The seller felt pressured and reduced your priority." } }
         ]},
-        { id: 3, category: "climate", title: "Drought Warning", text: "A heatwave alert predicts two dry weeks. Water trucks may be delayed, and local wells are already running low.", choices: [
+        { id: 3, category: "climate", title: "Drought Warning", text: "A heatwave alert predicts two dry weeks. Water trucks may be delayed, and local wells are already running low. The clinic also warned that dehydration cases are rising among children and elderly residents.", choices: [
             { text: "Stockpile water ($6)", effect: { money: -6, water: 15, trust: -6 }, msg: "Your home is prepared, but some neighbors call it hoarding." },
             { text: "Share with street block", effect: { water: -6, trust: 18, resilience: 4 }, msg: "Your block set up a fair queue and tensions cooled." },
             { text: "Install drip system (Use 4 Knowledge)", reqKnowledge: 4, effect: { knowledge: -4, water: 8, food: 7, trust: 4 }, msg: "You taught low-cost drip lines and improved yields with less water." },
             { text: "Efficient Irrigation", reqTrait: "Green Thumb", effect: { water: 7, food: 8, trust: 3 }, msg: "You redesigned rows and significantly cut evaporation loss." }
         ]},
-        { id: 4, category: "community", title: "School Fundraiser", text: "Teachers ask for support because students are skipping class from hunger and stress. The school wants books and breakfast support.", choices: [
+        { id: 4, category: "community", title: "School Fundraiser", text: "Teachers ask for support because students are skipping class from hunger and stress. The school wants books and breakfast support. Parents say some kids now come to class without eating since household food budgets were cut for rent and utilities.", choices: [
             { text: "Donate $10", effect: { money: -10, knowledge: 12, trust: 7 }, msg: "Your funds supported school meals and classroom supplies." },
-            { text: "Volunteer tutoring", effect: { resilience: -10, knowledge: 9, trust: 9 }, msg: "You gave time after work, and attendance improved this week." },
+            { text: "Volunteer tutoring", effect: { resilience: -10, knowledge: 9, trust: 9 }, msg: "You gave time after work, and attendance improved this week.", minigame: { type: "planning", total: 9, categories: [{ key: "students", label: "Student meals", goal: 4 }, { key: "elderly", label: "Elder support packs", goal: 2 }, { key: "workers", label: "Parent take-home packs", goal: 2 }], successBonus: { trust: 4, knowledge: 3 }, failEffect: { trust: -3 }, successMsg: "Your distribution plan covered the highest-risk households first.", failMsg: "The distribution plan left key families short and complaints rose." } },
             { text: "Design low-cost meal plan (Use 6 Knowledge)", reqKnowledge: 6, effect: { knowledge: -6, food: 5, trust: 11 }, msg: "You helped the school stretch food budgets without cutting nutrition." },
             { text: "Organize neighborhood drive", reqTrait: "Community Leader", effect: { trust: 16, knowledge: 7, money: 3 }, msg: "You coordinated donations and secured matching support." }
         ]},
-        { id: 5, category: "infrastructure", title: "Broken Fence", text: "A storm collapsed your back fence overnight. If left open, animals can damage storage and nearby plots.", choices: [
+        { id: 5, category: "infrastructure", title: "Broken Fence", text: "A storm collapsed your back fence overnight. If left open, animals can damage storage and nearby plots. Rebuilding now costs time and money, but waiting could mean losing part of your weekly food stock.", choices: [
             { text: "Fix it yourself", effect: { resilience: -16, hunger: 8, trust: 2 }, msg: "You patched the fence by hand through the afternoon.", minigame: { type: "reflex", successBonus: { resilience: 9, hunger: -4 }, failEffect: { resilience: -8 }, successMsg: "You kept the work rhythm steady and finished faster.", failMsg: "You overworked and lost precious rest time." } },
             { text: "Hire handyman ($14)", effect: { money: -14, resilience: 6, trust: 3 }, msg: "Costly, but your energy stayed intact for tomorrow." },
             { text: "Barter produce for repairs", effect: { food: -5, money: 4, trust: 6 }, msg: "A local carpenter accepted produce and gave a discount." }
         ]},
-        { id: 6, category: "health", title: "Neighbor in Need", text: "An elderly neighbor with limited mobility misses market day and asks for help with meals and medicine pickup.", choices: [
+        { id: 6, category: "health", title: "Neighbor in Need", text: "An elderly neighbor with limited mobility misses market day and asks for help with meals and medicine pickup. Their daughter works two jobs and cannot get time off this week, so support from nearby households matters.", choices: [
             { text: "Cook and deliver meals", effect: { food: -5, water: -2, trust: 18 }, msg: "Your support spread quickly through the block network." },
             { text: "Quick visit only", effect: { resilience: -4, trust: 8 }, msg: "You checked in and made sure they had emergency contacts." },
             { text: "Review treatment notes (Use 5 Knowledge)", reqKnowledge: 5, effect: { knowledge: -5, trust: 10, resilience: 6 }, msg: "You helped organize medicine schedules and reduced confusion." },
             { text: "Treat Them", reqTrait: "Healer", effect: { trust: 20, knowledge: 6, resilience: 4 }, msg: "Your medical experience prevented complications." }
         ]},
-        { id: 7, category: "food", title: "Pest Infestation", text: "Beetles spread across several plots. If untreated, the neighborhood may lose part of the month’s harvest.", choices: [
+        { id: 7, category: "food", title: "Pest Infestation", text: "Beetles spread across several plots. If untreated, the neighborhood may lose part of the month’s harvest. Shop prices are already high, so a failed local harvest would hit low-income families first.", choices: [
             { text: "Buy pesticide ($10)", effect: { money: -10, food: 7, trust: -2 }, msg: "The pests retreated, but some families worried about chemical use." },
             { text: "Handpick nests", effect: { resilience: -12, food: 6, hunger: 4 }, msg: "Labor intensive, but you protected key rows.", minigame: { type: "guess", successBonus: { food: 5 }, failEffect: { hunger: 5 }, successMsg: "You found major nests quickly and saved most crops.", failMsg: "You lost time on the wrong areas and fell behind." } },
             { text: "Natural remedy", reqTrait: "Green Thumb", effect: { food: 12, trust: 5, knowledge: 4 }, msg: "You mixed a safe remedy and shared instructions." }
         ]},
-        { id: 8, category: "health", title: "Flu Season", text: "A severe flu wave is spreading. Missing work means less income, but pushing through illness risks long recovery.", choices: [
+        { id: 8, category: "health", title: "Flu Season", text: "A severe flu wave is spreading. Missing work means less income, but pushing through illness risks long recovery. The nearest clinic has long queues, and medicine deliveries are delayed by two days.", choices: [
             { text: "Buy medicine ($15)", effect: { money: -15, resilience: 18 }, msg: "You recovered faster and avoided severe symptoms." },
             { text: "Rest and isolate", effect: { hunger: 6, resilience: 9, trust: 5 }, msg: "You lost a day of output but protected your neighbors." },
             { text: "Community clinic notes (Use 4 Knowledge)", reqKnowledge: 4, effect: { knowledge: -4, trust: 8, resilience: 8, money: 3 }, msg: "You distributed prevention guidance and reduced local cases." },
             { text: "Preventative Care", reqTrait: "Healer", effect: { resilience: 20, trust: 9 }, msg: "You identified early symptoms and helped people respond sooner." }
         ]},
-        { id: 9, category: "economy", title: "Traveling Merchant", text: "A merchant arrives with seeds, books, and storage goods. Prices are high unless you buy in bundles.", choices: [
+        { id: 9, category: "economy", title: "Traveling Merchant", text: "A merchant arrives with seeds, books, and storage goods. Prices are high unless you buy in bundles. The merchant says fuel costs and road checkpoints increased transport expenses this month.", choices: [
             { text: "Buy seeds ($10)", effect: { money: -10, food: 14 }, msg: "You secured seeds before prices jumped again." },
             { text: "Buy training books ($10)", effect: { money: -10, knowledge: 18, trust: 3 }, msg: "You brought practical guides for farming and budgeting." },
             { text: "Sell preserved food", effect: { food: -6, money: 12, trust: -3 }, msg: "You raised cash, but some neighbors wanted lower prices." },
             { text: "Bulk Discount", reqTrait: "Negotiator", effect: { money: -8, food: 11, knowledge: 12 }, msg: "You closed a balanced package deal for the district." }
         ]},
-        { id: 10, category: "community", title: "Neighborhood Dispute", text: "Two families accuse each other of taking shared water at night. If unresolved, cooperation on food distribution may collapse.", choices: [
+        { id: 10, category: "community", title: "Neighborhood Dispute", text: "Two families accuse each other of taking shared water at night. If unresolved, cooperation on food distribution may collapse. Several residents now threaten to stop pooling supplies unless someone restores trust.", choices: [
             { text: "Ignore it", effect: { trust: -8, resilience: -3 }, msg: "Without mediation, rumors spread and tempers rose." },
             { text: "Back one family", effect: { trust: -10, resilience: -4, food: 2 }, msg: "You gained short-term access to supplies but deepened divisions." },
             { text: "Set fair schedule (Use 5 Knowledge)", reqKnowledge: 5, effect: { knowledge: -5, trust: 10, water: 3 }, msg: "You drafted transparent water rules and reduced blame cycles." },
             { text: "Mediate openly", reqTrait: "Community Leader", effect: { trust: 16, resilience: -2 }, msg: "You facilitated both sides and restored working trust.", minigame: { type: "reflex", successBonus: { trust: 8 }, failEffect: { trust: -8 }, successMsg: "You timed your interventions well and avoided escalation.", failMsg: "A harsh exchange reopened the conflict." } }
         ]},
-        { id: 11, category: "infrastructure", title: "Roof Leak", text: "Heavy rain starts leaking through your roof. Damaged storage could spoil food for multiple days.", choices: [
+        { id: 11, category: "infrastructure", title: "Roof Leak", text: "Heavy rain starts leaking through your roof. Damaged storage could spoil food for multiple days. If moisture spreads, you may lose both dry goods and medicine packs kept near the wall.", choices: [
             { text: "Patch now", effect: { resilience: -9, water: 5, food: 2 }, msg: "You reduced water loss and saved some supplies.", minigame: { type: "sequence", successBonus: { resilience: 8, water: 3 }, failEffect: { resilience: -6 }, successMsg: "You sealed critical points in the right order.", failMsg: "You missed key cracks and needed extra effort." } },
             { text: "Delay repairs", effect: { food: -9, resilience: -4, trust: -2 }, msg: "Storage spoiled and neighbors questioned your planning." },
             { text: "Barter repair contract", reqTrait: "Negotiator", effect: { money: -4, resilience: 6, trust: 3 }, msg: "You traded services and locked a fair repair rate." }
         ]},
-        { id: 12, category: "food", title: "Wild Berries", text: "You find berry patches near the forest edge. Some are safe and nutrient-rich, others can cause illness.", choices: [
+        { id: 12, category: "food", title: "Wild Berries", text: "You find berry patches near the forest edge. Some are safe and nutrient-rich, others can cause illness. A neighboring family got sick last season after misidentifying similar-looking berries.", choices: [
             { text: "Eat quickly", effect: { food: 8, resilience: -8 }, msg: "You ate before checking varieties and paid for it later." },
             { text: "Skip them", effect: { hunger: 4, trust: 2 }, msg: "You played safe, but lost a chance at extra food." },
             { text: "Use field guide (Use 4 Knowledge)", reqKnowledge: 4, effect: { knowledge: -4, food: 13, resilience: 4 }, msg: "You identified safe clusters and mapped them for next week." },
             { text: "Identify species", reqTrait: "Green Thumb", effect: { food: 16, resilience: 5, trust: 4 }, msg: "You taught others what to harvest and what to avoid.", minigame: { type: "guess", successBonus: { food: 6 }, failEffect: { resilience: -5 }, successMsg: "You selected high-yield safe plants.", failMsg: "One bad pick caused stomach issues." } }
         ]},
-        { id: 13, category: "food", title: "Planting Day", text: "Cloud cover and soil moisture create a perfect planting window. The community asks whether to prioritize immediate food or next-week yield.", choices: [
+        { id: 13, category: "food", title: "Planting Day", text: "Cloud cover and soil moisture create a perfect planting window. The community asks whether to prioritize immediate food or next-week yield. Seed supplies are limited, so every planting decision has a direct trade-off this week.", choices: [
             { text: "Plant intensively", effect: { water: -3, money: -3, food: 9, trust: 2 }, msg: "You invested in a larger planting block.", minigame: { type: "plant", successBonus: { food: 12, knowledge: 5 }, failEffect: { food: -4, water: -1 }, successMsg: "Great placement boosted germination rates.", failMsg: "Patchy placement lowered yield." } },
             { text: "Sell some seed stock", effect: { money: 8, food: -3, trust: -4 }, msg: "You gained short-term dollars, but some expected local planting first." },
             { text: "Run shared training (Use 6 Knowledge)", reqKnowledge: 6, effect: { knowledge: -6, trust: 11, food: 6, resilience: 3 }, msg: "You trained volunteers and spread practical techniques." }
         ]},
-        { id: 14, category: "economy", title: "School Lunch Contract", text: "A school cafeteria offers a one-week contract for fresh produce. Payment is in dollars, but you must reserve part of your stock.", choices: [
+        { id: 14, category: "economy", title: "School Lunch Contract", text: "A school cafeteria offers a one-week contract for fresh produce. Payment is in dollars, but you must reserve part of your stock. If accepted, dozens of students get more reliable meals, but your own reserves will shrink.", choices: [
             { text: "Take contract", effect: { food: -8, money: 14, trust: 9 }, msg: "You supplied meals and the school paid on time." },
             { text: "Negotiate smaller contract", reqTrait: "Negotiator", effect: { food: -5, money: 10, trust: 7 }, msg: "You protected household supply while still supporting students." },
             { text: "Decline and keep food", effect: { food: 4, trust: -5 }, msg: "You stayed secure at home, but the school struggled this week." }
         ]},
-        { id: 15, category: "knowledge", title: "Radio Data Bulletin", text: "A regional radio station broadcasts crop prices and weather risk updates. Processing the data could help planning.", choices: [
+        { id: 15, category: "knowledge", title: "Radio Data Bulletin", text: "A regional radio station broadcasts crop prices and weather risk updates. Processing the data could help planning. Most neighbors are too busy to analyze the report, so practical translation could prevent costly mistakes.", choices: [
             { text: "Ignore report", effect: { trust: -2, money: -2 }, msg: "You missed warning signals and overpaid at market." },
             { text: "Study and plan (Use 5 Knowledge)", reqKnowledge: 5, effect: { knowledge: -5, money: 7, water: 3, trust: 5 }, msg: "Your plan cut waste and improved market timing." },
             { text: "Share briefing with neighbors", effect: { knowledge: -2, trust: 9, resilience: 4 }, msg: "You translated the bulletin into practical local actions." }
@@ -1066,10 +1164,10 @@
 
     // --- CHARACTER DATA ---
     const characters = [
-        { id: 'maya', name: "Maya the Teacher", bio: "A beloved educator.", avatar: "👩‍🏫", trait: "Community Leader", traitDesc: "Trust decreases 50% slower.", startingMods: { knowledge: 20, trust: 25, food: 5 } },
-        { id: 'liam', name: "Liam the Farmer", bio: "Expert in agriculture.", avatar: "👨‍🌾", trait: "Green Thumb", traitDesc: "Start with extra food supplies.", startingMods: { food: 25, resilience: 15, money: 5 } },
-        { id: 'sam', name: "Sam the Merchant", bio: "Resourceful and shrewd.", avatar: "🧑‍💼", trait: "Negotiator", traitDesc: "Start with extra money.", startingMods: { money: 25, food: 10, trust: 0 } },
-        { id: 'elena', name: "Elena the Doctor", bio: "Vital medical skills.", avatar: "👩‍⚕️", trait: "Healer", traitDesc: "Higher resilience and health.", startingMods: { resilience: 30, knowledge: 15, money: 5 } }
+        { id: 'maya', name: "Maya the Teacher", bio: "A beloved educator.", avatar: "assets/Maya.png", trait: "Community Leader", traitDesc: "Trust decreases 50% slower.", startingMods: { knowledge: 20, trust: 25, food: 5 } },
+        { id: 'liam', name: "Liam the Farmer", bio: "Expert in agriculture.", avatar: "assets/Liam.png", trait: "Green Thumb", traitDesc: "Start with extra food supplies.", startingMods: { food: 25, resilience: 15, money: 5 } },
+        { id: 'sam', name: "Sam the Merchant", bio: "Resourceful and shrewd.", avatar: "assets/Sam.png", trait: "Negotiator", traitDesc: "Start with extra money.", startingMods: { money: 25, food: 10, trust: 0 } },
+        { id: 'elena', name: "Elena the Doctor", bio: "Vital medical skills.", avatar: "assets/Elena.png", trait: "Healer", traitDesc: "Higher resilience and health.", startingMods: { resilience: 30, knowledge: 15, money: 5 } }
     ];
 
     // --- GAME SETTINGS ---
@@ -1100,6 +1198,7 @@
         active: false,
         choice: null,
         intervalId: null,
+        revealId: null,
         timerId: null,
         running: false,
         timerSeconds: 0,
@@ -1110,7 +1209,13 @@
         plantedGood: 0,
         plantGoal: 4,
         sequenceTarget: [],
-        sequenceIndex: 0
+        sequenceIndex: 0,
+        memorySequence: [],
+        memoryIndex: 0,
+        rapidCount: 0,
+        rapidTarget: 0,
+        planningAlloc: {},
+        planningConfig: null
     };
 
     // --- UI CONTROLLER ---
@@ -1319,7 +1424,7 @@
             const card = document.createElement('div');
             card.className = 'character-card';
             card.onclick = () => selectCharacter(char.id, card);
-            card.innerHTML = `<div class="char-avatar-large">${char.avatar}</div><div class="char-info"><h3>${char.name}</h3><p>${char.bio}</p><span class="trait-tag">${char.trait}</span><div class="char-stats">${char.traitDesc}</div></div>`;
+            card.innerHTML = `<div class="char-avatar-large"><img class="char-avatar-image" src="${char.avatar}" alt="${char.name} portrait"></div><div class="char-info"><h3>${char.name}</h3><p>${char.bio}</p><span class="trait-tag">${char.trait}</span><div class="char-stats">${char.traitDesc}</div></div>`;
             list.appendChild(card);
         });
     }
@@ -1734,6 +1839,8 @@
         minigameState.running = false;
         if (minigameState.intervalId) clearInterval(minigameState.intervalId);
         minigameState.intervalId = null;
+        if (minigameState.revealId) clearTimeout(minigameState.revealId);
+        minigameState.revealId = null;
         stopMiniGameTimer();
 
         minigameUI.text.innerText = "Complete this challenge for a better outcome.";
@@ -1809,7 +1916,107 @@
                 btn.onclick = () => resolveSequenceGame(btn.dataset.icon, btn);
             });
             startMiniGameTimer(8 - Math.min(2, level));
+        } else if (choice.minigame.type === 'memory') {
+            const icons = ['🌾', '💧', '📦', '🧭'];
+            const seqLength = 3 + level;
+            const revealMs = 1600 - (level * 260);
+            minigameState.memorySequence = Array.from({ length: seqLength }, () => icons[Math.floor(Math.random() * icons.length)]);
+            minigameState.memoryIndex = 0;
+            minigameUI.title.innerText = "Memory Drill";
+            minigameUI.hint.innerText = "Memorize the sequence, then tap it in order.";
+            minigameUI.stage.innerHTML = `<div class="memory-seq" id="memory-seq">${minigameState.memorySequence.join(' ')}</div>`;
+            minigameUI.action.style.display = 'none';
+            minigameState.revealId = setTimeout(() => {
+                if (!minigameState.active) return;
+                minigameUI.stage.innerHTML = `
+                    <div class="memory-seq" id="memory-progress">Step 1 / ${minigameState.memorySequence.length}</div>
+                    <div class="memory-row">
+                        <button class="memory-btn" data-icon="🌾">🌾</button>
+                        <button class="memory-btn" data-icon="💧">💧</button>
+                        <button class="memory-btn" data-icon="📦">📦</button>
+                        <button class="memory-btn" data-icon="🧭">🧭</button>
+                    </div>`;
+                minigameUI.stage.querySelectorAll('.memory-btn').forEach(btn => {
+                    btn.onclick = () => resolveMemoryGame(btn.dataset.icon, btn);
+                });
+                startMiniGameTimer(9 - Math.min(2, level));
+            }, revealMs);
+        } else if (choice.minigame.type === 'rapidtap') {
+            minigameState.rapidCount = 0;
+            minigameState.rapidTarget = 10 + (level * 4);
+            minigameUI.title.innerText = "Rapid Outreach";
+            minigameUI.hint.innerText = "Tap the alert button fast to spread the update.";
+            minigameUI.stage.innerHTML = `
+                <div class="rapid-wrap">
+                    <div class="rapid-count" id="rapid-count">0 / ${minigameState.rapidTarget}</div>
+                    <button class="rapid-btn" id="rapid-btn">📣</button>
+                </div>`;
+            minigameUI.action.style.display = 'none';
+            const rapidBtn = document.getElementById('rapid-btn');
+            if (rapidBtn) rapidBtn.onclick = () => resolveRapidTapGame(rapidBtn);
+            startMiniGameTimer(6 - Math.min(2, level));
+        } else if (choice.minigame.type === 'planning') {
+            minigameState.planningConfig = choice.minigame;
+            minigameState.planningAlloc = {};
+            (choice.minigame.categories || []).forEach(cat => {
+                minigameState.planningAlloc[cat.key] = 0;
+            });
+            minigameUI.title.innerText = "Distribution Planning";
+            minigameUI.hint.innerText = "Allocate packs to cover minimum needs, then submit.";
+            minigameUI.stage.innerHTML = buildPlanningMarkup();
+            minigameUI.action.style.display = 'block';
+            minigameUI.action.innerText = "Submit Plan";
+            minigameUI.action.onclick = resolvePlanningGame;
+            minigameUI.stage.querySelectorAll('.planning-step').forEach(btn => {
+                btn.onclick = () => adjustPlanningAllocation(btn.dataset.key, Number(btn.dataset.delta));
+            });
+            startMiniGameTimer(14 - Math.min(3, level));
         }
+    }
+    function buildPlanningMarkup() {
+        const cfg = minigameState.planningConfig;
+        if (!cfg) return '';
+        const used = Object.values(minigameState.planningAlloc).reduce((sum, val) => sum + val, 0);
+        const remaining = Math.max(0, cfg.total - used);
+        return `
+            <div class="planning-wrap">
+                <div class="planning-remaining">Remaining Packs: ${remaining} / ${cfg.total}</div>
+                ${cfg.categories.map(cat => `
+                    <div class="planning-row">
+                        <div class="planning-label">${cat.label} (min ${cat.goal})</div>
+                        <button class="planning-step" data-key="${cat.key}" data-delta="-1">-</button>
+                        <div class="planning-count">${minigameState.planningAlloc[cat.key]}</div>
+                        <button class="planning-step" data-key="${cat.key}" data-delta="1">+</button>
+                    </div>
+                `).join('')}
+            </div>`;
+    }
+    function adjustPlanningAllocation(key, delta) {
+        const cfg = minigameState.planningConfig;
+        if (!cfg || !Object.prototype.hasOwnProperty.call(minigameState.planningAlloc, key)) return;
+        const used = Object.values(minigameState.planningAlloc).reduce((sum, val) => sum + val, 0);
+        if (delta > 0 && used >= cfg.total) return;
+        const next = (minigameState.planningAlloc[key] || 0) + delta;
+        if (next < 0) return;
+        minigameState.planningAlloc[key] = next;
+        minigameUI.stage.innerHTML = buildPlanningMarkup();
+        minigameUI.stage.querySelectorAll('.planning-step').forEach(btn => {
+            btn.onclick = () => adjustPlanningAllocation(btn.dataset.key, Number(btn.dataset.delta));
+        });
+    }
+    function resolvePlanningGame() {
+        const cfg = minigameState.planningConfig;
+        if (!cfg) return finishMiniGame(false);
+        const used = Object.values(minigameState.planningAlloc).reduce((sum, val) => sum + val, 0);
+        let meetsGoals = true;
+        for (const cat of cfg.categories) {
+            if ((minigameState.planningAlloc[cat.key] || 0) < cat.goal) {
+                meetsGoals = false;
+                break;
+            }
+        }
+        const success = used <= cfg.total && meetsGoals;
+        finishMiniGame(success);
     }
     function playReflexGame() {
         const marker = document.getElementById('reflex-marker');
@@ -1881,8 +2088,36 @@
             setTimeout(() => finishMiniGame(false), 250);
         }
     }
+    function resolveMemoryGame(icon, button) {
+        const expected = minigameState.memorySequence[minigameState.memoryIndex];
+        if (icon === expected) {
+            button.style.borderColor = '#4a7c59';
+            minigameState.memoryIndex += 1;
+            const progress = document.getElementById('memory-progress');
+            if (progress) progress.innerText = `Step ${minigameState.memoryIndex + 1} / ${minigameState.memorySequence.length}`;
+            setTimeout(() => { button.style.borderColor = ''; }, 120);
+            if (minigameState.memoryIndex >= minigameState.memorySequence.length) {
+                setTimeout(() => finishMiniGame(true), 200);
+            }
+        } else {
+            button.style.borderColor = '#d9534f';
+            setTimeout(() => finishMiniGame(false), 200);
+        }
+    }
+    function resolveRapidTapGame(button) {
+        minigameState.rapidCount += 1;
+        const rapidCountEl = document.getElementById('rapid-count');
+        if (rapidCountEl) rapidCountEl.innerText = `${minigameState.rapidCount} / ${minigameState.rapidTarget}`;
+        button.style.transform = 'scale(0.97)';
+        setTimeout(() => { button.style.transform = ''; }, 50);
+        if (minigameState.rapidCount >= minigameState.rapidTarget) {
+            finishMiniGame(true);
+        }
+    }
     function finishMiniGame(success) {
         if (minigameState.intervalId) clearInterval(minigameState.intervalId);
+        if (minigameState.revealId) clearTimeout(minigameState.revealId);
+        minigameState.revealId = null;
         stopMiniGameTimer();
         minigameState.intervalId = null;
         minigameUI.modal.classList.remove('open');
@@ -1899,7 +2134,9 @@
         const gameScreen = document.getElementById('game-screen');
 
         const char = gameState.selectedCharacter;
-        document.getElementById('game-avatar').innerText = char.avatar;
+        const gameAvatar = document.getElementById('game-avatar');
+        gameAvatar.src = char.avatar;
+        gameAvatar.alt = `${char.name} portrait`;
         document.getElementById('game-char-name').innerText = char.name;
         document.getElementById('game-char-trait').innerText = `${char.trait}: ${char.traitDesc}`;
         document.getElementById('header-profile-name').innerText = char.name.split(' ')[0];
