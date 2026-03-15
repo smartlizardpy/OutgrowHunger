@@ -288,6 +288,13 @@
         .character-card:hover { border-color: var(--primary-color); background-color: #f9fdfa; transform: translateY(-3px); box-shadow: 0 8px 16px rgba(0,0,0,0.06); }
         .character-card.selected { border-color: var(--primary-color); background-color: #eef5ef; box-shadow: 0 0 0 2px var(--primary-color) inset; }
         .char-avatar-large { font-size: 3rem; margin-right: 15px; min-width: 60px; text-align: center; }
+        .char-avatar-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            object-fit: cover;
+            display: block;
+        }
         .char-info h3 { color: var(--primary-color); margin-bottom: 5px; }
         .char-info p { font-size: 0.9rem; margin-bottom: 5px; color: #555; }
         .char-stats { font-size: 0.8rem; color: #777; font-style: italic; }
@@ -385,11 +392,22 @@
             margin-bottom: 0;
         }
         .avatar-circle {
-            width: 45px; height: 45px;
-            background: var(--accent-color);
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.8rem; margin-right: 15px;
+            width: 56px;
+            height: 56px;
+            background: transparent;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        .avatar-circle img {
+            width: 100%;
+            height: 100%;
+            border-radius: 0;
+            object-fit: contain;
+            display: block;
         }
 
         /* Stats System */
@@ -834,7 +852,7 @@
 
         <!-- Character Display -->
         <div class="character-display">
-            <div class="avatar-circle" id="game-avatar">?</div>
+            <div class="avatar-circle"><img id="game-avatar" src="" alt="Character portrait"></div>
             <div>
                 <strong id="game-char-name">Character Name</strong><br>
                 <small id="game-char-trait" style="color: var(--primary-color);">Trait</small>
@@ -870,7 +888,7 @@
             </button>
         </div>
         <div class="data-panel" id="data-panel">
-            <div class="data-panel-kicker">Hunger Data</div>
+            <div class="data-panel-kicker">Not So fun facts</div>
             <p class="data-panel-fact" id="data-panel-fact">Conflict, climate shocks, and high food prices are key hunger drivers.</p>
         </div>
 
@@ -1066,10 +1084,10 @@
 
     // --- CHARACTER DATA ---
     const characters = [
-        { id: 'maya', name: "Maya the Teacher", bio: "A beloved educator.", avatar: "👩‍🏫", trait: "Community Leader", traitDesc: "Trust decreases 50% slower.", startingMods: { knowledge: 20, trust: 25, food: 5 } },
-        { id: 'liam', name: "Liam the Farmer", bio: "Expert in agriculture.", avatar: "👨‍🌾", trait: "Green Thumb", traitDesc: "Start with extra food supplies.", startingMods: { food: 25, resilience: 15, money: 5 } },
-        { id: 'sam', name: "Sam the Merchant", bio: "Resourceful and shrewd.", avatar: "🧑‍💼", trait: "Negotiator", traitDesc: "Start with extra money.", startingMods: { money: 25, food: 10, trust: 0 } },
-        { id: 'elena', name: "Elena the Doctor", bio: "Vital medical skills.", avatar: "👩‍⚕️", trait: "Healer", traitDesc: "Higher resilience and health.", startingMods: { resilience: 30, knowledge: 15, money: 5 } }
+        { id: 'maya', name: "Maya the Teacher", bio: "A beloved educator.", avatar: "assets/Maya.png", trait: "Community Leader", traitDesc: "Trust decreases 50% slower.", startingMods: { knowledge: 20, trust: 25, food: 5 } },
+        { id: 'liam', name: "Liam the Farmer", bio: "Expert in agriculture.", avatar: "assets/Liam.png", trait: "Green Thumb", traitDesc: "Start with extra food supplies.", startingMods: { food: 25, resilience: 15, money: 5 } },
+        { id: 'sam', name: "Sam the Merchant", bio: "Resourceful and shrewd.", avatar: "assets/Sam.png", trait: "Negotiator", traitDesc: "Start with extra money.", startingMods: { money: 25, food: 10, trust: 0 } },
+        { id: 'elena', name: "Elena the Doctor", bio: "Vital medical skills.", avatar: "assets/Elena.png", trait: "Healer", traitDesc: "Higher resilience and health.", startingMods: { resilience: 30, knowledge: 15, money: 5 } }
     ];
 
     // --- GAME SETTINGS ---
@@ -1319,7 +1337,7 @@
             const card = document.createElement('div');
             card.className = 'character-card';
             card.onclick = () => selectCharacter(char.id, card);
-            card.innerHTML = `<div class="char-avatar-large">${char.avatar}</div><div class="char-info"><h3>${char.name}</h3><p>${char.bio}</p><span class="trait-tag">${char.trait}</span><div class="char-stats">${char.traitDesc}</div></div>`;
+            card.innerHTML = `<div class="char-avatar-large"><img class="char-avatar-image" src="${char.avatar}" alt="${char.name} portrait"></div><div class="char-info"><h3>${char.name}</h3><p>${char.bio}</p><span class="trait-tag">${char.trait}</span><div class="char-stats">${char.traitDesc}</div></div>`;
             list.appendChild(card);
         });
     }
@@ -1899,7 +1917,9 @@
         const gameScreen = document.getElementById('game-screen');
 
         const char = gameState.selectedCharacter;
-        document.getElementById('game-avatar').innerText = char.avatar;
+        const gameAvatar = document.getElementById('game-avatar');
+        gameAvatar.src = char.avatar;
+        gameAvatar.alt = `${char.name} portrait`;
         document.getElementById('game-char-name').innerText = char.name;
         document.getElementById('game-char-trait').innerText = `${char.trait}: ${char.traitDesc}`;
         document.getElementById('header-profile-name').innerText = char.name.split(' ')[0];
