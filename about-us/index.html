@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About Us | Outgrow Hunger</title>
+    <link rel="preload" as="image" href="/about-us/Ates.png">
+    <link rel="preload" as="image" href="/about-us/Ozan.png">
+    <link rel="preload" as="image" href="/about-us/Sohan.png">
     <style>
         :root {
             --primary-color: #4a7c59;
@@ -173,24 +176,24 @@
         <h2 class="team-title">Meet the Team</h2>
         <section class="team-grid" aria-label="Team members">
             <article class="team-card">
-                <img class="team-photo" src="/about-us/Ates.png" alt="Ateş">
+                <img class="team-photo" src="/about-us/Ates.png" alt="Ateş" loading="eager" fetchpriority="high" decoding="async">
                 <div class="team-info">
                     <div class="team-name">Ateş</div>
                     <div class="team-role">The Idea Guy</div>
                 </div>
             </article>
             <article class="team-card">
-                <img class="team-photo" src="/about-us/Ozan.png" alt="Ozan">
+                <img class="team-photo" src="/about-us/Ozan.png" alt="Ozan" loading="eager" fetchpriority="high" decoding="async">
                 <div class="team-info">
                     <div class="team-name">Ozan</div>
                     <div class="team-role">Coder &amp; SWE (uses Arch btw)</div>
                 </div>
             </article>
             <article class="team-card">
-                <img class="team-photo" src="/about-us/Sohan.png" alt="Sohan">
+                <img class="team-photo" src="/about-us/Sohan.png" alt="Sohan" loading="eager" fetchpriority="high" decoding="async">
                 <div class="team-info">
                     <div class="team-name">Sohan</div>
-                    <div class="team-role">Very Smart and Creative</div>
+                    <div class="team-role">Very Smart and Creative. Keeps us motivated</div>
                 </div>
             </article>
         </section>
