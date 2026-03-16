@@ -1631,6 +1631,10 @@
         const settings = difficultySettings[difficulty];
         let hungerGain = settings.hungerRate;
         let trustLoss = settings.trustDecay;
+        const isFinalNight = gameState.day >= 30;
+
+        // Balance fix: do not increase hunger on the final night before win check.
+        if (isFinalNight) hungerGain = 0;
 
         if (gameState.selectedCharacter.trait === "Community Leader") {
             trustLoss = Math.floor(trustLoss / 2);
