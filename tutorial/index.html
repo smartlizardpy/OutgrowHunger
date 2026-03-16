@@ -3,13 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tutorial | Outgrow Hunger</title>
+    <title>Interactive Tutorial | Outgrow Hunger</title>
     <style>
         :root {
             --primary: #4a7c59;
+            --primary-dark: #3a6346;
             --bg: #f4f1ea;
-            --text: #333;
             --card: #fff;
+            --text: #333;
+            --muted: #666;
+            --danger: #d9534f;
+            --warn: #f0ad4e;
+            --ok: #4a7c59;
             --radius: 16px;
             --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
         }
@@ -30,46 +35,539 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 16px;
         }
 
-        .card {
-            width: min(640px, 100%);
+        .tutorial {
+            width: min(920px, 100%);
             background: var(--card);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
-            padding: 28px;
-            text-align: center;
+            padding: 18px;
+            display: grid;
+            grid-template-columns: 320px minmax(0, 1fr);
+            gap: 14px;
         }
 
-        h1 {
+        .panel {
+            border: 1px solid #ececec;
+            border-radius: 12px;
+            padding: 14px;
+            background: #fff;
+        }
+
+        .left h1 {
             color: var(--primary);
-            font-size: clamp(1.6rem, 3vw, 2.2rem);
+            font-size: 1.45rem;
+            margin-bottom: 8px;
+        }
+
+        .hint {
+            color: var(--muted);
+            font-size: 0.95rem;
+            line-height: 1.45;
             margin-bottom: 12px;
         }
 
-        p {
-            color: #555;
-            line-height: 1.6;
-            margin-bottom: 18px;
+        .step-title {
+            font-weight: 700;
+            color: #444;
+            margin-bottom: 6px;
         }
 
-        a {
-            display: inline-block;
-            text-decoration: none;
-            color: #fff;
+        .step-text {
+            color: #555;
+            line-height: 1.45;
+            margin-bottom: 10px;
+            min-height: 74px;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 8px;
+            border-radius: 999px;
+            background: #ececec;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
             background: var(--primary);
-            padding: 12px 16px;
-            border-radius: 12px;
+            transition: width 0.25s ease;
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+
+        button, a.btn {
+            border: none;
+            border-radius: 10px;
+            padding: 10px 12px;
             font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .btn-primary:hover { background: var(--primary-dark); }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .hud {
+            display: grid;
+            gap: 10px;
+        }
+
+        .stat {
+            display: grid;
+            gap: 4px;
+        }
+
+        .stat-head {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.86rem;
+            color: #555;
+            font-weight: 700;
+        }
+
+        .bar {
+            height: 10px;
+            border-radius: 999px;
+            background: #e6e6e6;
+            overflow: hidden;
+        }
+
+        .fill {
+            height: 100%;
+            width: 0%;
+            transition: width 0.25s ease;
+        }
+
+        .resources {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .res {
+            border: 1px solid #ececec;
+            border-radius: 10px;
+            padding: 8px;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        .res strong {
+            display: block;
+            font-size: 1rem;
+            color: #222;
+            margin-bottom: 2px;
+        }
+
+        .event {
+            margin-top: 6px;
+            border: 1px solid #ececec;
+            border-radius: 12px;
+            padding: 12px;
+            background: #fafafa;
+        }
+
+        .event h2 {
+            font-size: 1.05rem;
+            margin-bottom: 6px;
+            color: #3f3f3f;
+        }
+
+        .event p {
+            color: #5e5e5e;
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+
+        .choices, .actions {
+            display: grid;
+            gap: 8px;
+        }
+
+        .choice-btn {
+            background: #fff;
+            border: 1px solid #ddd;
+            color: #4a4a4a;
+            text-align: left;
+        }
+
+        .choice-btn.done {
+            border-color: var(--primary);
+            background: #eef8ee;
+            color: var(--primary-dark);
+        }
+
+        .log {
+            margin-top: 8px;
+            min-height: 24px;
+            color: var(--primary-dark);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .summary {
+            margin-top: 8px;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        @media (max-width: 900px) {
+            .tutorial {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <main class="card">
-        <h1>Tutorial</h1>
-        <p>Something great will happen... for now.</p>
-        <a href="/game.html">Back to Game</a>
+    <main class="tutorial">
+        <section class="left panel">
+            <h1>How to Play</h1>
+            <p class="hint">This is a short, interactive walkthrough. Click through each step to learn the game loop.</p>
+            <div class="progress-track"><div id="progress-fill" class="progress-fill"></div></div>
+            <div class="step-title" id="step-title"></div>
+            <p class="step-text" id="step-text"></p>
+            <div class="controls">
+                <button id="btn-prev" class="btn-secondary">Back</button>
+                <button id="btn-next" class="btn-primary" disabled>Next</button>
+                <a class="btn btn-secondary" href="/game.html">Skip Tutorial</a>
+            </div>
+            <p class="summary" id="step-summary"></p>
+        </section>
+
+        <section class="right panel">
+            <div class="hud">
+                <div class="stat">
+                    <div class="stat-head"><span>Hunger</span><span id="hud-hunger">25%</span></div>
+                    <div class="bar"><div id="bar-hunger" class="fill" style="background:#f0ad4e;"></div></div>
+                </div>
+                <div class="stat">
+                    <div class="stat-head"><span>Resilience</span><span id="hud-resilience">70%</span></div>
+                    <div class="bar"><div id="bar-resilience" class="fill" style="background:#4a7c59;"></div></div>
+                </div>
+                <div class="stat">
+                    <div class="stat-head"><span>Trust</span><span id="hud-trust">45%</span></div>
+                    <div class="bar"><div id="bar-trust" class="fill" style="background:#f0ad4e;"></div></div>
+                </div>
+                <div class="resources">
+                    <div class="res">🍞<strong id="res-food">6</strong>Food</div>
+                    <div class="res">💧<strong id="res-water">5</strong>Water</div>
+                    <div class="res">💰<strong id="res-money">8</strong>Dollars</div>
+                    <div class="res">📚<strong id="res-knowledge">4</strong>Know.</div>
+                </div>
+            </div>
+
+            <div class="event">
+                <h2 id="event-title">Welcome</h2>
+                <p id="event-text">Start the tutorial to see a sample event and decision flow.</p>
+                <div id="event-choices" class="choices"></div>
+                <div id="action-bar" class="actions"></div>
+                <div id="event-log" class="log"></div>
+            </div>
+        </section>
     </main>
+
+    <script>
+        const tutorialSteps = [
+            {
+                title: 'Step 1: Daily Event',
+                text: 'Each day gives you an event with choices. Choose one to see immediate stat/resource effects.',
+                setup() {
+                    setEvent(
+                        'Market Shortage',
+                        'The market is short on staples today. What do you do?',
+                        [
+                            {
+                                label: 'Buy emergency food (-$4, +4 Food)',
+                                onPick: () => {
+                                    state.money -= 4;
+                                    state.food += 4;
+                                    state.trust += 1;
+                                    state.progress.stepDone = true;
+                                    logMsg('Choice applied: You secured food quickly.');
+                                    refreshHUD();
+                                    markChoicesDone();
+                                    updateNav();
+                                }
+                            },
+                            {
+                                label: 'Wait for cheaper stock (+$2, -6 Trust)',
+                                onPick: () => {
+                                    state.money += 2;
+                                    state.trust -= 6;
+                                    state.progress.stepDone = true;
+                                    logMsg('Choice applied: You saved money but neighbors were upset.');
+                                    refreshHUD();
+                                    markChoicesDone();
+                                    updateNav();
+                                }
+                            }
+                        ]
+                    );
+                    setActions([]);
+                    setSummary('Tip: Most choices trade one thing for another.');
+                }
+            },
+            {
+                title: 'Step 2: Action Bar',
+                text: 'After events, use actions to stabilize critical stats. Actions consume resources.',
+                setup() {
+                    setEvent('Action Phase', 'Use one action now. Eat reduces Hunger. Drink boosts Resilience.', []);
+                    setActions([
+                        {
+                            label: '🍞 Eat (-1 Food, -20 Hunger)',
+                            onClick: () => {
+                                if (state.food <= 0) return logMsg('No food left.');
+                                state.food -= 1;
+                                state.hunger = Math.max(0, state.hunger - 20);
+                                state.progress.stepDone = true;
+                                logMsg('Action used: Hunger reduced.');
+                                refreshHUD();
+                                updateNav();
+                            }
+                        },
+                        {
+                            label: '💧 Drink (-1 Water, +5 Resilience)',
+                            onClick: () => {
+                                if (state.water <= 0) return logMsg('No water left.');
+                                state.water -= 1;
+                                state.resilience = Math.min(100, state.resilience + 5);
+                                state.progress.stepDone = true;
+                                logMsg('Action used: Resilience improved.');
+                                refreshHUD();
+                                updateNav();
+                            }
+                        }
+                    ]);
+                    setSummary('Tip: Save resources, but do not ignore critical stats.');
+                }
+            },
+            {
+                title: 'Step 3: End Day Effects',
+                text: 'Ending a day applies nightly pressure. Hunger rises, trust can drop, and low stats can hurt you.',
+                setup() {
+                    setEvent('Night Transition', 'Click End Day to apply nightly effects.', []);
+                    setActions([
+                        {
+                            label: 'End Day',
+                            onClick: () => {
+                                state.hunger = Math.min(100, state.hunger + 10);
+                                state.trust = Math.max(0, state.trust - 4);
+                                if (state.trust <= 20) state.resilience = Math.max(0, state.resilience - 5);
+                                state.progress.stepDone = true;
+                                logMsg('Night applied: Hunger +10, Trust -4.');
+                                refreshHUD();
+                                updateNav();
+                            }
+                        }
+                    ]);
+                    setSummary('Tip: plan ahead before ending day.');
+                }
+            },
+            {
+                title: 'Step 4: Win and Lose',
+                text: 'You win at Day 30 if Hunger is low and Resilience is high. You lose instantly if Hunger=100, Resilience=0, or Trust=0.',
+                setup() {
+                    setEvent('Goal Check', 'Final condition example shown here.', []);
+                    setActions([
+                        {
+                            label: 'Check My Status',
+                            onClick: () => {
+                                state.progress.stepDone = true;
+                                logMsg(`Current status -> Hunger ${state.hunger}% | Resilience ${state.resilience}% | Trust ${state.trust}%`);
+                                updateNav();
+                            }
+                        }
+                    ]);
+                    setSummary('Win target: Hunger < 10 and Resilience > 80 on Day 30.');
+                }
+            },
+            {
+                title: 'Step 5: You Are Ready',
+                text: 'That is the full loop: Event -> Choice -> Action -> End Day. Now jump into the real game.',
+                setup() {
+                    setEvent('Tutorial Complete', 'You are ready to play Outgrow Hunger.', []);
+                    setActions([]);
+                    state.progress.stepDone = true;
+                    logMsg('Tutorial complete. Good luck!');
+                    setSummary('Click "Play Game" below.');
+                    updateNav();
+                }
+            }
+        ];
+
+        const state = {
+            step: 0,
+            hunger: 25,
+            resilience: 70,
+            trust: 45,
+            food: 6,
+            water: 5,
+            money: 8,
+            knowledge: 4,
+            progress: { stepDone: false }
+        };
+
+        const el = {
+            stepTitle: document.getElementById('step-title'),
+            stepText: document.getElementById('step-text'),
+            summary: document.getElementById('step-summary'),
+            progressFill: document.getElementById('progress-fill'),
+            btnPrev: document.getElementById('btn-prev'),
+            btnNext: document.getElementById('btn-next'),
+            eventTitle: document.getElementById('event-title'),
+            eventText: document.getElementById('event-text'),
+            eventChoices: document.getElementById('event-choices'),
+            actionBar: document.getElementById('action-bar'),
+            eventLog: document.getElementById('event-log'),
+            hunger: document.getElementById('hud-hunger'),
+            resilience: document.getElementById('hud-resilience'),
+            trust: document.getElementById('hud-trust'),
+            barHunger: document.getElementById('bar-hunger'),
+            barResilience: document.getElementById('bar-resilience'),
+            barTrust: document.getElementById('bar-trust'),
+            food: document.getElementById('res-food'),
+            water: document.getElementById('res-water'),
+            money: document.getElementById('res-money'),
+            knowledge: document.getElementById('res-knowledge')
+        };
+
+        function clamp() {
+            state.hunger = Math.max(0, Math.min(100, state.hunger));
+            state.resilience = Math.max(0, Math.min(100, state.resilience));
+            state.trust = Math.max(0, Math.min(100, state.trust));
+            state.food = Math.max(0, state.food);
+            state.water = Math.max(0, state.water);
+            state.money = Math.max(0, state.money);
+            state.knowledge = Math.max(0, state.knowledge);
+        }
+
+        function colorFor(value, invert = false) {
+            if (!invert) {
+                if (value > 60) return '#4a7c59';
+                if (value > 30) return '#f0ad4e';
+                return '#d9534f';
+            }
+            if (value < 40) return '#4a7c59';
+            if (value < 70) return '#f0ad4e';
+            return '#d9534f';
+        }
+
+        function refreshHUD() {
+            clamp();
+            el.hunger.textContent = state.hunger + '%';
+            el.resilience.textContent = state.resilience + '%';
+            el.trust.textContent = state.trust + '%';
+            el.barHunger.style.width = state.hunger + '%';
+            el.barResilience.style.width = state.resilience + '%';
+            el.barTrust.style.width = state.trust + '%';
+            el.barHunger.style.background = colorFor(state.hunger, true);
+            el.barResilience.style.background = colorFor(state.resilience);
+            el.barTrust.style.background = colorFor(state.trust);
+            el.food.textContent = state.food;
+            el.water.textContent = state.water;
+            el.money.textContent = state.money;
+            el.knowledge.textContent = state.knowledge;
+        }
+
+        function logMsg(msg) {
+            el.eventLog.textContent = msg;
+        }
+
+        function setSummary(msg) {
+            el.summary.textContent = msg;
+        }
+
+        function setEvent(title, text, choices) {
+            el.eventTitle.textContent = title;
+            el.eventText.textContent = text;
+            el.eventChoices.innerHTML = '';
+            choices.forEach(choice => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.textContent = choice.label;
+                btn.onclick = () => choice.onPick();
+                el.eventChoices.appendChild(btn);
+            });
+        }
+
+        function markChoicesDone() {
+            el.eventChoices.querySelectorAll('button').forEach(btn => {
+                btn.disabled = true;
+                btn.classList.add('done');
+            });
+        }
+
+        function setActions(actions) {
+            el.actionBar.innerHTML = '';
+            actions.forEach(action => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-primary';
+                btn.textContent = action.label;
+                btn.onclick = action.onClick;
+                el.actionBar.appendChild(btn);
+            });
+        }
+
+        function updateNav() {
+            const total = tutorialSteps.length;
+            const isLast = state.step === total - 1;
+            el.btnPrev.disabled = state.step === 0;
+            el.btnNext.disabled = !state.progress.stepDone;
+            el.btnNext.textContent = isLast ? 'Play Game' : 'Next';
+            el.progressFill.style.width = ((state.step + 1) / total * 100) + '%';
+        }
+
+        function renderStep() {
+            const step = tutorialSteps[state.step];
+            state.progress.stepDone = false;
+            el.stepTitle.textContent = step.title;
+            el.stepText.textContent = step.text;
+            el.eventLog.textContent = '';
+            step.setup();
+            refreshHUD();
+            updateNav();
+        }
+
+        el.btnPrev.addEventListener('click', () => {
+            if (state.step <= 0) return;
+            state.step -= 1;
+            renderStep();
+        });
+
+        el.btnNext.addEventListener('click', () => {
+            if (!state.progress.stepDone) return;
+            if (state.step >= tutorialSteps.length - 1) {
+                window.location.href = '/game.html';
+                return;
+            }
+            state.step += 1;
+            renderStep();
+        });
+
+        renderStep();
+    </script>
 </body>
 </html>
