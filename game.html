@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="copyright" content="Made by Ateş Demir and Ozan Kaygusuz">
+    <meta name="copyright" content="Made by Ateş Demir, Ozan Kaygusuz, and Sohan">
     <title>Outgrow Hunger</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%8C%B1%3C/text%3E%3C/svg%3E">
     <style>
@@ -867,7 +867,7 @@
 
         <div style="width: 100%;">
             <button id="btn-start">Start New Game</button>
-            <button class="secondary" style="margin-top: 15px;" onclick="toggleModal(true)">How to Play</button>
+            <button class="secondary" style="margin-top: 15px;" onclick="window.location.href='/tutorial'">How to Play</button>
             <button class="secondary" style="margin-top: 10px;" onclick="window.location.href='/about-us/'">About Us</button>
         </div>
     </div>
@@ -1017,7 +1017,7 @@
 
 </div>
 
-<p class="site-credit">Copyright © Made by Ateş Demir and Ozan Kaygusuz</p>
+<p class="site-credit">Copyright © Made by Ateş Demir, Ozan Kaygusuz, and Sohan</p>
 
 <script>
     // --- AUDIO SYSTEM ---
@@ -1631,6 +1631,10 @@
         const settings = difficultySettings[difficulty];
         let hungerGain = settings.hungerRate;
         let trustLoss = settings.trustDecay;
+        const isFinalNight = gameState.day >= 30;
+
+        // Balance fix: do not increase hunger on the final night before win check.
+        if (isFinalNight) hungerGain = 0;
 
         if (gameState.selectedCharacter.trait === "Community Leader") {
             trustLoss = Math.floor(trustLoss / 2);
