@@ -572,6 +572,7 @@
             flex-grow: 1;
             display: flex;
             flex-direction: column;
+            min-height: 0;
             animation: slideUp 0.4s ease-out;
         }
         #game-container.game-wide .event-card {
@@ -584,10 +585,35 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        .event-content { flex-grow: 1; }
-        #game-container.game-wide .event-content {
+        .event-content {
+            flex: 1 1 auto;
+            min-height: 0;
             overflow-y: auto;
-            padding-right: 4px;
+            padding-right: 6px;
+            padding-bottom: 14px;
+            scrollbar-gutter: stable;
+        }
+        #game-container.game-wide .event-content {
+            padding-right: 8px;
+            padding-bottom: 18px;
+        }
+        .event-context {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #6b7f6f;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .event-dialogue {
+            margin-bottom: 10px;
+            padding: 8px 10px;
+            border-left: 3px solid var(--accent-color);
+            background: #faf6f2;
+            color: #5d5147;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            line-height: 1.4;
         }
         .event-actions {
             margin-top: 20px;
@@ -985,7 +1011,9 @@
         <div class="event-card" id="event-card-container">
             <div class="event-content">
                 <h2 id="event-title">Event Title</h2>
+                <p id="event-context" class="event-context"></p>
                 <p id="event-text">Event description goes here.</p>
+                <p id="event-dialogue" class="event-dialogue" style="display:none;"></p>
                 <p id="event-result" style="color: var(--primary-color); font-weight: bold; display: none; margin-top: 15px; padding: 10px; background: #f4f9f4; border-radius: 6px; border-left: 4px solid var(--primary-color);"></p>
                 <p id="daily-summary" style="color: #666; font-size: 0.9rem; margin-top: 10px; display: none; border-top: 1px solid #eee; padding-top: 10px;"></p>
             </div>
@@ -1073,6 +1101,57 @@
             });
         }
     }
+
+    // --- WORLD SETTING ---
+    const world = {
+        city: "San Isidro Ward",
+        region: "the Dry Belt Edge",
+        school: "Maple Bridge School",
+        market: "Old Canal Market",
+        clinic: "Northside Clinic",
+        mainConflict: "a prolonged drought and rising water prices"
+    };
+
+    const npcByCategory = {
+        community: [
+            { name: "Principal Grace", line: "If we miss this week, more children will show up hungry." },
+            { name: "Noah (Block Organizer)", line: "People still want to cooperate, but they need to see fair decisions." }
+        ],
+        economy: [
+            { name: "Marta (Market Vendor)", line: "Fuel jumped again, so every crate is costing more to move." },
+            { name: "Elena (Parent Shopper)", line: "Prices are changing daily. Families can’t plan like this." }
+        ],
+        climate: [
+            { name: "Nurse Aisha", line: "Heat stress cases are up this week, especially among elders." },
+            { name: "Farmer Jonah", line: "Without water planning, this month’s yield could collapse." }
+        ],
+        health: [
+            { name: "Dr. Carter", line: "Food access and health are linked. We can’t treat one without the other." },
+            { name: "Nurse Maya", line: "Small prevention steps now will save us from bigger problems later." }
+        ],
+        food: [
+            { name: "Farmer Leah", line: "One pest wave can wipe out weeks of work if we react too late." },
+            { name: "Owen (Storage Volunteer)", line: "If storage fails, we lose food before it reaches families." }
+        ],
+        infrastructure: [
+            { name: "Marcus (Repair Worker)", line: "Quick repairs look expensive now, but delays usually cost more." },
+            { name: "Nadia (Neighbor)", line: "Leaks and broken fences always hit food supplies first." }
+        ],
+        knowledge: [
+            { name: "Iris (Radio Host)", line: "Data only helps if someone translates it into practical action." },
+            { name: "Teacher Rowan", line: "A better plan can stretch the same supplies much further." }
+        ]
+    };
+
+    const contextByCategory = {
+        community: () => `${world.city} • ${world.school} District`,
+        economy: () => `${world.city} • ${world.market}`,
+        climate: () => `${world.region} • Water Alert`,
+        health: () => `${world.city} • ${world.clinic}`,
+        food: () => `${world.city} • Local Growers Network`,
+        infrastructure: () => `${world.city} • Housing & Storage Zone`,
+        knowledge: () => `${world.city} • Community Radio`
+    };
 
     // --- GAME DATA ---
     const eventsData = [
@@ -1281,7 +1360,8 @@
         ],
         climate: [
             "Climate shocks like droughts and floods make farm planning more risky year to year.",
-            "Water-efficient farming methods can protect yields under heat and drought pressure."
+            "Water-efficient farming methods can protect yields under heat and drought pressure.",
+            "Rainwater harvesting and shaded storage reduce losses during long dry spells."
         ],
         economy: [
             "Food price spikes can force families to choose between nutrition and essential bills.",
@@ -1293,11 +1373,14 @@
         ],
         food: [
             "Crop loss from pests and weather can rapidly affect both income and local prices.",
-            "Diversified crops help communities absorb shocks better than single-crop strategies."
+            "Diversified crops help communities absorb shocks better than single-crop strategies.",
+            "Companion planting can naturally reduce pest pressure in small plots.",
+            "Mulching helps retain soil moisture and reduce irrigation demand."
         ],
         knowledge: [
             "Practical knowledge-sharing can raise yields without large financial investment.",
-            "Farm and market data help families make better food and spending decisions."
+            "Farm and market data help families make better food and spending decisions.",
+            "Drip irrigation and crop rotation are low-cost methods used in drought-prone regions."
         ],
         infrastructure: [
             "Storage and shelter failures can erase weeks of food planning in one storm.",
@@ -1339,6 +1422,31 @@
         const bucket = hungerFactsByCategory[category] || hungerFactsByCategory.general;
         const idx = (Math.max(1, gameState.day) - 1) % bucket.length;
         uiStats.fact.innerText = bucket[idx];
+    }
+
+    function getArcMilestoneNote(day) {
+        if (day === 10) {
+            return `Arc Update: ${world.city} officially declared ${world.mainConflict} as the top emergency.`;
+        }
+        if (day === 20) {
+            return `Arc Update: community water reserves are critically low, and coordination is now the deciding factor.`;
+        }
+        if (day === 30) {
+            return `Arc Finale: after weeks of pressure, ${world.city} is measuring whether your strategy built real resilience.`;
+        }
+        return '';
+    }
+
+    function getNpcDialogue(category) {
+        const pool = npcByCategory[category] || [];
+        if (!pool.length) return '';
+        const pick = pool[Math.floor(Math.random() * pool.length)];
+        return `${pick.name}: "${pick.line}"`;
+    }
+
+    function getEventContext(category) {
+        const resolver = contextByCategory[category];
+        return resolver ? resolver() : `${world.city} • Community Update`;
     }
 
     function applyTrustDelta(delta, source) {
@@ -1710,7 +1818,9 @@
 
     function triggerRandomEvent(dailyNotes = []) {
         const eventTitle = document.getElementById('event-title');
+        const eventContext = document.getElementById('event-context');
         const eventText = document.getElementById('event-text');
+        const eventDialogue = document.getElementById('event-dialogue');
         const eventResult = document.getElementById('event-result');
         const dailySummary = document.getElementById('daily-summary');
         const choiceContainer = document.getElementById('event-choices');
@@ -1724,6 +1834,16 @@
             dailySummary.style.display = 'block';
         }
 
+        const arcNote = getArcMilestoneNote(gameState.day);
+        if (arcNote) {
+            if (dailySummary.style.display === 'none') {
+                dailySummary.innerHTML = `<strong>Community Arc:</strong><br>${arcNote}`;
+                dailySummary.style.display = 'block';
+            } else {
+                dailySummary.innerHTML += `<br><br><strong>Community Arc:</strong><br>${arcNote}`;
+            }
+        }
+
         // Logic to prevent repeating the same event twice
         let availableEvents = eventsData.filter(e => e.id !== gameState.lastEventId);
         // Fallback just in case logic fails
@@ -1734,8 +1854,17 @@
         gameState.lastEventCategory = randomEvent.category || 'general';
 
         eventTitle.innerText = randomEvent.title;
+        eventContext.innerText = getEventContext(gameState.lastEventCategory);
         eventText.innerText = randomEvent.text;
         updateHungerFact(gameState.lastEventCategory);
+
+        const dialogue = getNpcDialogue(gameState.lastEventCategory);
+        if (dialogue) {
+            eventDialogue.innerText = dialogue;
+            eventDialogue.style.display = 'block';
+        } else {
+            eventDialogue.style.display = 'none';
+        }
 
         randomEvent.choices.forEach(choice => {
             if (choice.reqTrait && gameState.selectedCharacter.trait !== choice.reqTrait) return;
