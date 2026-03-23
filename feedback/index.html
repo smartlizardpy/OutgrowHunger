@@ -151,6 +151,26 @@
         #success-view h2 { color: var(--primary-color); margin-bottom: 8px; }
         #success-view p { color: #666; margin-bottom: 24px; }
 
+        .star-rating {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            direction: rtl;
+        }
+        .star-rating input { display: none; }
+        .star-rating label {
+            font-size: 2.2rem;
+            color: #ddd;
+            cursor: pointer;
+            transition: color 0.15s, transform 0.15s;
+        }
+        .star-rating label:hover,
+        .star-rating label:hover ~ label,
+        .star-rating input:checked ~ label {
+            color: #f0ad4e;
+        }
+        .star-rating label:hover { transform: scale(1.15); }
+
         .site-credit {
             text-align: center;
             font-size: 0.8rem;
@@ -165,6 +185,17 @@
     <div id="form-view">
         <h1>Share Your Feedback</h1>
         <p class="subtitle">Help us improve Outgrow Hunger</p>
+
+        <div class="field">
+            <label>How would you rate the game?</label>
+            <div class="star-rating">
+                <input type="radio" name="rating" id="star5" value="5"><label for="star5">&#9733;</label>
+                <input type="radio" name="rating" id="star4" value="4"><label for="star4">&#9733;</label>
+                <input type="radio" name="rating" id="star3" value="3"><label for="star3">&#9733;</label>
+                <input type="radio" name="rating" id="star2" value="2"><label for="star2">&#9733;</label>
+                <input type="radio" name="rating" id="star1" value="1"><label for="star1">&#9733;</label>
+            </div>
+        </div>
 
         <div class="field">
             <label for="feedback-email">Email <span style="font-weight:400;color:#999;">(optional)</span></label>
@@ -216,6 +247,8 @@
     btnSubmit.addEventListener('click', async () => {
         const text = document.getElementById('feedback-text').value.trim();
         const email = document.getElementById('feedback-email').value.trim();
+        const ratingEl = document.querySelector('input[name="rating"]:checked');
+        const rating = ratingEl ? parseInt(ratingEl.value) : null;
 
         if (!text) {
             statusEl.innerText = 'Please write some feedback before submitting.';
@@ -230,6 +263,7 @@
 
         try {
             await addDoc(collection(db, 'feedback'), {
+                rating: rating,
                 email: email || null,
                 text: text,
                 timestamp: serverTimestamp()
