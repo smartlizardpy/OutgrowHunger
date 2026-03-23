@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="copyright" content="Made by Ateş Demir, Ozan Kaygusuz, and Sohan">
     <title>Outgrow Hunger</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-KMJVKTWKR2"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-KMJVKTWKR2');
+    </script>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%8C%B1%3C/text%3E%3C/svg%3E">
     <style>
         :root {
@@ -255,6 +263,53 @@
             margin: 0;
             padding: 0;
         }
+
+        /* Feedback Modal */
+        #feedback-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            z-index: 1000;
+            backdrop-filter: blur(3px);
+        }
+        #feedback-modal.open { display: flex; animation: fadeIn 0.3s; }
+        .feedback-modal-content {
+            background: white;
+            padding: 28px;
+            border-radius: var(--radius);
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .feedback-modal-content h2 { color: var(--primary-color); margin-bottom: 8px; font-size: 1.4rem; }
+        .feedback-modal-content p { color: #666; font-size: 0.95rem; margin-bottom: 20px; }
+        .feedback-modal-actions { display: flex; flex-direction: column; gap: 10px; }
+        .feedback-modal-actions a {
+            display: block;
+            text-decoration: none;
+            text-align: center;
+            background: var(--primary-color);
+            color: white;
+            padding: 14px 20px;
+            border-radius: var(--radius);
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .feedback-modal-actions a:hover { background: var(--primary-dark); }
+        #feedback-modal-close {
+            background: transparent;
+            border: 2px solid #ccc;
+            color: #777;
+            box-shadow: none;
+            padding: 12px 20px;
+        }
+        #feedback-modal-close:hover { background: #f5f5f5; border-color: #aaa; }
 
         /* Start Screen */
         #start-screen { justify-content: center; align-items: center; text-align: center; }
@@ -1039,10 +1094,22 @@
             </div>
         </div>
         
+        <a href="/feedback/" id="btn-feedback" style="display:block;text-decoration:none;text-align:center;background:transparent;border:2px solid var(--primary-color);color:var(--primary-color);padding:16px 20px;border-radius:var(--radius);font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.2s;width:100%;margin-top:10px;box-sizing:border-box;">Leave Feedback</a>
         <button id="btn-restart">Play Again</button>
         <button id="btn-menu" class="secondary">Main Menu</button>
     </div>
 
+</div>
+
+<div id="feedback-modal">
+    <div class="feedback-modal-content">
+        <h2>We'd love your feedback!</h2>
+        <p>Help us improve Outgrow Hunger by sharing your thoughts. It only takes a minute.</p>
+        <div class="feedback-modal-actions">
+            <a href="/feedback/">Leave Feedback</a>
+            <button id="feedback-modal-close">Maybe Later</button>
+        </div>
+    </div>
 </div>
 
 <p class="site-credit">Copyright © Made by Ateş Demir, Ozan Kaygusuz, and Sohan</p>
@@ -1619,9 +1686,17 @@
     }
 
     function triggerEndScreen(win, reason, icon) {
+        gtag('event', 'game_end', {
+            game_number: parseInt(sessionStorage.getItem('games_played')) || 1,
+            result: win ? 'win' : 'loss',
+            day_reached: gameState.day > 30 ? 30 : gameState.day,
+            character: gameState.selectedCharacter ? gameState.selectedCharacter.name : 'Unknown',
+            difficulty: difficulty
+        });
+
         const titleEl = document.getElementById('end-title');
         const iconEl = document.getElementById('end-icon');
-        
+
         playSound(win ? 'win' : 'error');
         
         iconEl.innerText = icon;
@@ -1640,7 +1715,14 @@
             titleEl.className = "lose-title";
         }
 
-        setTimeout(() => showScreen('end'), 1000);
+        setTimeout(() => {
+            showScreen('end');
+            if (!win) {
+                setTimeout(() => {
+                    document.getElementById('feedback-modal').classList.add('open');
+                }, 800);
+            }
+        }, 1000);
     }
 
     function updateActionButtons() {
@@ -2262,6 +2344,13 @@
 
     function startGame() {
         if (!gameState.selectedCharacter) return;
+        const gamesPlayed = (parseInt(sessionStorage.getItem('games_played')) || 0) + 1;
+        sessionStorage.setItem('games_played', gamesPlayed);
+        gtag('event', 'game_start', {
+            game_number: gamesPlayed,
+            character: gameState.selectedCharacter.name,
+            difficulty: difficulty
+        });
         playSound('success');
         const container = document.getElementById('game-container');
         const gameScreen = document.getElementById('game-screen');
@@ -2294,9 +2383,39 @@
     // --- LISTENERS ---
     buttons.start.addEventListener('click', () => { playSound('click'); initCharacterSelection(); showScreen('charSelect'); });
     buttons.confirmChar.addEventListener('click', startGame);
-    buttons.restart.addEventListener('click', () => { playSound('click'); initCharacterSelection(); showScreen('charSelect'); });
-    buttons.menu.addEventListener('click', () => { playSound('click'); showScreen('start'); });
+    buttons.restart.addEventListener('click', () => { playSound('click'); resetFeedbackModal(); initCharacterSelection(); showScreen('charSelect'); });
+    buttons.menu.addEventListener('click', () => { playSound('click'); resetFeedbackModal(); showScreen('start'); });
     minigameUI.cancel.addEventListener('click', () => finishMiniGame(false));
+
+    function resetFeedbackModal() {
+        feedbackDismissed = false;
+        document.querySelector('.feedback-modal-content h2').innerText = "We'd love your feedback!";
+        document.querySelector('.feedback-modal-content p').innerText = "Help us improve Outgrow Hunger by sharing your thoughts. It only takes a minute.";
+        document.getElementById('feedback-modal-close').innerText = "Maybe Later";
+        document.getElementById('feedback-modal').classList.remove('open');
+    }
+
+    let feedbackDismissed = false;
+    document.getElementById('feedback-modal-close').addEventListener('click', () => {
+        playSound('click');
+        if (!feedbackDismissed) {
+            feedbackDismissed = true;
+            document.querySelector('.feedback-modal-content h2').innerText = "Really? It's free.";
+            document.querySelector('.feedback-modal-content p').innerText = "Just a few words to help us make the game better!";
+            document.getElementById('feedback-modal-close').innerText = "No thanks";
+        } else {
+            document.getElementById('feedback-modal').classList.remove('open');
+        }
+    });
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+            const total = parseInt(sessionStorage.getItem('games_played')) || 0;
+            if (total > 0) {
+                gtag('event', 'session_summary', { total_games_played: total });
+            }
+        }
+    });
 
 </script>
 
