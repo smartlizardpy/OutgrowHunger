@@ -1,6 +1,6 @@
-# Outgrow Hunger
+# The Last Harvest
 
-Outgrow Hunger is a browser-based serious game about hunger, resilience, and community trust.
+The Last Harvest is a browser-based serious game about hunger, resilience, and community trust.
 Players make day-to-day survival decisions, manage limited resources, and face social trade-offs that mirror real-world food insecurity pressures.
 
 ## What the Game Covers
